@@ -1,8 +1,12 @@
 def mean(matrix):
+    # matrix = [A_1, A_2, ... A_len(matrix)]
+    # dengan A: Vektor hasil linierisasi
+    # Menghitung elemen rata-rata dari tiap elemen i dari A
+    # dan memasukkannya ke matriksnilaitengah
     matriksnilaitengah = []
-    for i in range(len(matrix)):
+    for i in range(len(matrix[0])):
         sum = 0
-        for j in range(len(matrix[0])):
+        for j in range(len(matrix)):
             sum += matrix[i][j]
         matriksnilaitengah.append(sum / len(matrix[0]))
     return matriksnilaitengah
