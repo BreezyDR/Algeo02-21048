@@ -37,3 +37,12 @@ def euclidean_distance(vector1, vector2):
         subtraction = vector1[i] - vector2[i]
         sum += subtraction**2
     return (sum**(1/2))
+
+
+def transpose_matrix(matrix):
+    arr_result = [[0 for j in range(len(matrix))] for i in range(len(matrix[0]))]
+    for i in range(len(matrix)):
+        for j in range(len(matrix[0])):
+            arr_result[i][j] = matrix[j][i]
+    return arr_result
+
