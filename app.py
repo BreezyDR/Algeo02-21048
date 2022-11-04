@@ -1,5 +1,5 @@
 import src.eigenfaces as ef
-from src.matrix import Matrix
+from src.matrix import Matrix, identity_matrix
 
 #debug
 import random
@@ -8,8 +8,7 @@ if __name__ == '__main__':
     k = [[6,1,1], [4, -2, 5], [2,8,7]]
     m = Matrix(k)
     
-    print("determinan: " + str(ef.dummy_getdet(k)))
-    print("dete", m.dummy_getdet())
+    print("determinan", m.dummy_getdet())
 
     # ef.squashMat(k)
 
@@ -35,5 +34,10 @@ if __name__ == '__main__':
 
     summaryMat.describe()
 
+    toBeTransposed = Matrix(matrix=[[1, 2, 3], [4, 5, 6]])
+    toBeTransposed.describe()
+    toBeTransposed.transpose()
+    toBeTransposed.describe()
+    
 
     

@@ -100,6 +100,11 @@ class Matrix:
         self.assign(arr_result)
 
 
+    # linear algebra operational
+    def transpose(self):
+        trp = [[self.buffer[i][j] for i in range(self.sizeY)] for j in range(self.sizeX)]
+        self.assign(trp)
+
     #deteminan with np
     def dummy_getdet(self) -> int :
         return np.linalg.det(np.array(self.buffer))
@@ -115,6 +120,7 @@ class Matrix:
             print()
         print('sizeX :', self.getSizeX())
         print('sizeY :', self.getSizeY())
+        print()
 
 
     #getter setter
@@ -126,3 +132,15 @@ class Matrix:
 
     def getMatrix(self):
         return self.buffer
+
+
+
+# static method
+def identity_matrix(dimension : int) -> List[List[int]] :
+    # Membuat matriks identitas sesuai dimensi matriks A
+    identity = [[0 for j in range(dimension)] for i in range(dimension)]
+    for i in range(dimension):
+        for j in range(dimension):
+            if (i == j):
+                identity[i][j] = 1
+    return identity

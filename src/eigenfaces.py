@@ -66,23 +66,23 @@ def min_value(array : List[int]) -> int :
     return index
     
 
-def transpose_matrix(matrix : List[List[int]]) -> List[List[int]] :
-    # Membuat transpos suatu matriks
-    arr_result = [[0 for j in range(len(matrix))] for i in range(len(matrix[0]))]
-    for i in range(len(matrix)):
-        for j in range(len(matrix[0])):
-            arr_result[i][j] = matrix[j][i]
-    return arr_result
+# def transpose_matrix(matrix : List[List[int]]) -> List[List[int]] :
+#     # Membuat transpos suatu matriks
+#     arr_result = [[0 for j in range(len(matrix))] for i in range(len(matrix[0]))]
+#     for i in range(len(matrix)):
+#         for j in range(len(matrix[0])):
+#             arr_result[i][j] = matrix[j][i]
+#     return arr_result
 
 
-def identity_matrix(dimension : int) -> List[List[int]] :
-    # Membuat matriks identitas sesuai dimensi matriks A
-    identity = [[0 for j in range(dimension)] for i in range(dimension)]
-    for i in range(dimension):
-        for j in range(dimension):
-            if (i == j):
-                identity[i][j] = 1
-    return identity
+# def identity_matrix(dimension : int) -> List[List[int]] :
+#     # Membuat matriks identitas sesuai dimensi matriks A
+#     identity = [[0 for j in range(dimension)] for i in range(dimension)]
+#     for i in range(dimension):
+#         for j in range(dimension):
+#             if (i == j):
+#                 identity[i][j] = 1
+#     return identity
 
 # ini lom bisa
 def determinant(matrix : List[List[int]]) -> int :
@@ -104,9 +104,3 @@ def determinant(matrix : List[List[int]]) -> int :
             det += tanda*matrix[0][i] * determinant(temp)
             tanda = -tanda
     return det
-
-def dummy_getdet(matrix : List[List[int]]) -> int :
-    return np.linalg.det(np.array(matrix))
-
-def squashMat(m : List[List[int]]) -> List[int]:
-    return [ i for j in range(len(m)) for i in m[j]]
