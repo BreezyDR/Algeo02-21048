@@ -1,18 +1,18 @@
-from typing import List, Optional
 import numpy as np
+import math
 
-# def mean(matrix: List[List[int]]):
-#     # matrix = [A_1, A_2, ... A_len(matrix)]
-#     # dengan A: Vektor hasil linierisasi
-#     # Menghitung elemen rata-rata dari tiap elemen i dari A
-#     # dan memasukkannya ke matriksnilaitengah
-#     matriksnilaitengah = []
-#     for i in range(len(matrix[0])):
-#         sum = 0
-#         for j in range(len(matrix)):
-#             sum += matrix[i][j]
-#         matriksnilaitengah.append(sum / len(matrix[0]))
-#     return matriksnilaitengah
+def mean(matrix):
+    # matrix = [A_1, A_2, ... A_len(matrix)]
+    # dengan A: Vektor hasil linierisasi
+    # Menghitung elemen rata-rata dari tiap elemen i dari A
+    # dan memasukkannya ke matriksnilaitengah
+    matriksnilaitengah = []
+    for i in range(len(matrix[0])):
+        sum = 0
+        for j in range(len(matrix)):
+            sum += matrix[i][j]
+        matriksnilaitengah.append(sum / len(matrix[0]))
+    return matriksnilaitengah
 
 
 # def subtract_matrix(matrix1 : List[List[int]], matrix2 : List[List[int]]) -> List[int] :
@@ -25,13 +25,8 @@ import numpy as np
 #     return arr_result
 
 
-# def multiply_matrix(matrix1 : List[List[int]], matrix2 : List[List[int]]) -> List[int] :
-#     arr_result = [[0 for j in range(len(matrix2[0]))] for i in range(len(matrix1))]
-#     for i in range(len(matrix1)):
-#         for j in range(len(matrix2[0])):
-#             for k in range(0, len(matrix2)):
-#                 arr_result[i][j] = (matrix1[i][k] * matrix2[k][j])
-#     return arr_result
+def multiply_matrix(matrix1, matrix2):
+    return np.matmul(matrix1, matrix2)
 
 
 def euclidean_distance(vector1 : List[int], vector2 : List[int]) -> List[int] :
@@ -40,39 +35,19 @@ def euclidean_distance(vector1 : List[int], vector2 : List[int]) -> List[int] :
         sum = 0
         subtraction = vector1[i] - vector2[i]
         sum += subtraction**2
-        sum = sum**(1/2)
+        sum = math.sqrt(sum)
         euclidean_array.append(sum)
     return euclidean_array
 
 
-def search_value(array : List[int], value : int) -> int :
-    # Mengembalikan indeks terkecil sebuah value yang dicari.
-    # Jika tidak ada, mengembalikan index -1.
-    index = -1
-    for i in range(len(array)):
-        if (array[i] == value):
-            index = i
-            break
-    return index
-
-
-def min_value(array : List[int]) -> int :
+def min_value(array):
     # Mengembalikan indeks di mana nilai terkecil
-    min = array[0]
-    for i in range(len(array)):
-        if (min < array[i]):
-            array[i] = min
-    index = search_value(array, min)
-    return index
+    return min(array)
     
 
-# def transpose_matrix(matrix : List[List[int]]) -> List[List[int]] :
-#     # Membuat transpos suatu matriks
-#     arr_result = [[0 for j in range(len(matrix))] for i in range(len(matrix[0]))]
-#     for i in range(len(matrix)):
-#         for j in range(len(matrix[0])):
-#             arr_result[i][j] = matrix[j][i]
-#     return arr_result
+def transpose_matrix(matrix):
+    # Membuat transpos suatu matriks
+    return np.transpose(matrix)
 
 
 # def identity_matrix(dimension : int) -> List[List[int]] :
@@ -88,19 +63,4 @@ def min_value(array : List[int]) -> int :
 def determinant(matrix : List[List[int]]) -> int :
     # Mencari determinan suatu matriks
     # Prekondisi: Matriks harus persegi
-    temp = [[0 for j in range(len(matrix[0]))] for i in range(len(matrix))]
-    tanda = 1
-    det = 0
-    if (len(matrix) == 1):
-        det = matrix[0][0]
-    else:
-        for i in range(len(matrix)):
-            for j in range(1, len(matrix)):
-                for k in range(len(matrix[0])):
-                    if (k < i):
-                        temp[j-1][k] = matrix[j][k]
-                    elif (k > i):
-                        temp[j-1][k-1] = matrix[j][k]
-            det += tanda*matrix[0][i] * determinant(temp)
-            tanda = -tanda
-    return det
+    return np.linalg.det(matrix)
