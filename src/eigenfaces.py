@@ -32,17 +32,72 @@ def multiply_matrix(matrix1, matrix2):
 
 
 def euclidean_distance(vector1, vector2):
-    sum = 0
+    euclidean_array = []
     for i in range(len(vector1)):
+        sum = 0
         subtraction = vector1[i] - vector2[i]
         sum += subtraction**2
-    return (sum**(1/2))
+        sum = sum**(1/2)
+        euclidean_array.append(sum)
+    return euclidean_array
 
+
+def search_value(array, value):
+    # Mengembalikan indeks terkecil sebuah value yang dicari.
+    # Jika tidak ada, mengembalikan index -1.
+    index = -1
+    for i in range(len(array)):
+        if (array[i] == value):
+            index = i
+            break
+    return index
+
+
+def min_value(array):
+    # Mengembalikan indeks di mana nilai terkecil
+    min = array[0]
+    for i in range(len(array)):
+        if (min < array[i]):
+            array[i] = min
+    index = search_value(array, min)
+    return index
+    
 
 def transpose_matrix(matrix):
+    # Membuat transpos suatu matriks
     arr_result = [[0 for j in range(len(matrix))] for i in range(len(matrix[0]))]
     for i in range(len(matrix)):
         for j in range(len(matrix[0])):
             arr_result[i][j] = matrix[j][i]
     return arr_result
 
+
+def identity_matrix(dimension):
+    # Membuat matriks identitas sesuai dimensi matriks A
+    identity = [[0 for j in range(dimension)] for i in range(dimension)]
+    for i in range(dimension):
+        for j in range(dimension):
+            if (i == j):
+                identity[i][j] = 1
+    return identity
+
+
+def determinant(matrix):
+    # Mencari determinan suatu matriks
+    # Prekondisi: Matriks harus persegi
+    temp = [[0 for j in range(len(matrix[0]))] for i in range(len(matrix))]
+    tanda = 1
+    det = 0
+    if (len(matrix) == 1):
+        det = matrix[0][0]
+    else:
+        for i in range(len(matrix)):
+            for j in range(1, len(matrix)):
+                for k in range(len(matrix[0])):
+                    if (k < i):
+                        temp[j-1][k] = matrix[j][k]
+                    elif (k > i):
+                        temp[j-1][k-1] = matrix[j][k]
+            det += tanda*matrix[0][i] * determinant(temp)
+            tanda = -tanda
+    return det
