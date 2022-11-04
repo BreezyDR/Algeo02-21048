@@ -1,4 +1,6 @@
-def mean(matrix):
+from typing import List, Optional
+
+def mean(matrix: List[List[int]]):
     # matrix = [A_1, A_2, ... A_len(matrix)]
     # dengan A: Vektor hasil linierisasi
     # Menghitung elemen rata-rata dari tiap elemen i dari A
@@ -12,7 +14,7 @@ def mean(matrix):
     return matriksnilaitengah
 
 
-def subtract_matrix(matrix1, matrix2):
+def subtract_matrix(matrix1 : List[List[int]], matrix2 : List[List[int]]) -> List[int] :
     arr_result = []
     for i in range(len(matrix1)):
         arr_col = []
@@ -22,7 +24,7 @@ def subtract_matrix(matrix1, matrix2):
     return arr_result
 
 
-def multiply_matrix(matrix1, matrix2):
+def multiply_matrix(matrix1 : List[List[int]], matrix2 : List[List[int]]) -> List[int] :
     arr_result = [[0 for j in range(len(matrix2[0]))] for i in range(len(matrix1))]
     for i in range(len(matrix1)):
         for j in range(len(matrix2[0])):
@@ -31,7 +33,7 @@ def multiply_matrix(matrix1, matrix2):
     return arr_result
 
 
-def euclidean_distance(vector1, vector2):
+def euclidean_distance(vector1 : List[int], vector2 : List[int]) -> List[int] :
     euclidean_array = []
     for i in range(len(vector1)):
         sum = 0
@@ -42,7 +44,7 @@ def euclidean_distance(vector1, vector2):
     return euclidean_array
 
 
-def search_value(array, value):
+def search_value(array : List[int], value : int) -> int :
     # Mengembalikan indeks terkecil sebuah value yang dicari.
     # Jika tidak ada, mengembalikan index -1.
     index = -1
@@ -53,7 +55,7 @@ def search_value(array, value):
     return index
 
 
-def min_value(array):
+def min_value(array : List[int]) -> int :
     # Mengembalikan indeks di mana nilai terkecil
     min = array[0]
     for i in range(len(array)):
@@ -63,7 +65,7 @@ def min_value(array):
     return index
     
 
-def transpose_matrix(matrix):
+def transpose_matrix(matrix : List[List[int]]) -> List[List[int]] :
     # Membuat transpos suatu matriks
     arr_result = [[0 for j in range(len(matrix))] for i in range(len(matrix[0]))]
     for i in range(len(matrix)):
@@ -72,7 +74,7 @@ def transpose_matrix(matrix):
     return arr_result
 
 
-def identity_matrix(dimension):
+def identity_matrix(dimension : int) -> List[List[int]] :
     # Membuat matriks identitas sesuai dimensi matriks A
     identity = [[0 for j in range(dimension)] for i in range(dimension)]
     for i in range(dimension):
@@ -82,7 +84,7 @@ def identity_matrix(dimension):
     return identity
 
 
-def determinant(matrix):
+def determinant(matrix : List[List[int]]) -> int :
     # Mencari determinan suatu matriks
     # Prekondisi: Matriks harus persegi
     temp = [[0 for j in range(len(matrix[0]))] for i in range(len(matrix))]
