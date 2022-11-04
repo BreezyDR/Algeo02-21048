@@ -5,26 +5,18 @@ import numpy as np
 ###         JUST A LAYOUT        ###
 # WE MIGHT USE NUMPY ARRAY INSTEAD #
 class Matrix:
-    # def __init__(self, sizeY, sizeX) -> None:
-    #     if sizeX == None:
-    #         sizeX = sizeY
-
-    #     self.sizeX = sizeX
-    #     self.sizeY = sizeY
-    #     self.buffer = [[0 for i in range(self.sizeX)] for j in range(self.sizeY)]
-
-    def __init__(self, matrix=None) -> None:
+    def __init__(self, matrix : List[List[int]] = None) -> None:
         if matrix != None:
             self.assign(matrix=matrix)
         else:
             self.assign(matrix=[[]])
 
-    def assign(self, matrix: List[List[int]]):
+    def assign(self, matrix: List[List[int]]) -> None :
         self.buffer = [[i for i in matrix[j]] for j in range(len(matrix))] #is a deepcopy
 
         self.adjustSize()
 
-    def adjustSize(self):
+    def adjustSize(self) -> None :
         self.sizeY = len(self.buffer)
         
         if self.sizeY == 0:
@@ -34,59 +26,34 @@ class Matrix:
 
     ##operational
     #everything is sbuject to change
-    def addBy(self, matrix) :
-        matrix1 = self.buffer
-        matrix2 = matrix
+    def addBy(self, matrix : List[List[int]] = None) -> None :
+        if matrix != None:
+            arr_result = []
+            for i in range(len(self.buffer)):
+                arr_col = []
+                for j in range(len(self.buffer[0])):
+                    arr_col.append(self.buffer[i][j] + matrix[i][j])
+                arr_result.append(arr_col)
+            
+            self.assign(arr_result)
 
-        arr_result = []
-        for i in range(len(matrix1)):
-            arr_col = []
-            for j in range(len(matrix1[0])):
-                arr_col.append(matrix1[i][j] + matrix2[i][j])
-            arr_result.append(arr_col)
-        
-        self.assign(arr_result)
+    def subtractBy(self, matrix : List[List[int]] = None) -> None :
+        if matrix != None:
+            arr_result = []
+            for i in range(len(self.buffer)):
+                arr_col = []
+                for j in range(len(self.buffer[0])):
+                    arr_col.append(self.buffer[i][j] - matrix[i][j])
+                arr_result.append(arr_col)
+            
+            self.assign(arr_result)
 
-    def subtractBy(self, matrix) :
-        matrix1 = self.buffer
-        matrix2 = matrix
-
-        arr_result = []
-        for i in range(len(matrix1)):
-            arr_col = []
-            for j in range(len(matrix1[0])):
-                arr_col.append(matrix1[i][j] - matrix2[i][j])
-            arr_result.append(arr_col)
-        
-        self.assign(arr_result)
-
-    def multiplyBy(self, matrix) :
-        matrix1 = self.buffer
-        matrix2 = matrix
-
-        arr_result = []
-        for i in range(len(matrix1)):
-            arr_col = []
-            for j in range(len(matrix1[0])):
-                arr_col.append(matrix1[i][j] * matrix2[i][j])
-            arr_result.append(arr_col)
-        
-        
-        self.assign(arr_result)
-
-    def divideBy(self, matrix=None, scalar=None) :
+    def multiplyBy(self, matrix : Optional[List[List[int]]] = None, scalar : Optional[int] = None) -> None :
         arr_result = []
 
         if matrix != None:
-            matrix1 = self.buffer
-            matrix2 = matrix
-
-            
-            for i in range(len(matrix1)):
-                arr_col = []
-                for j in range(len(matrix1[0])):
-                    arr_col.append(matrix1[i][j] / matrix2[i][j])
-                arr_result.append(arr_col)
+            self.assign(np.matmul(self.buffer, matrix))
+            return
 
         elif scalar != None and scalar != 0:
             matrix1 = self.buffer
@@ -99,19 +66,36 @@ class Matrix:
         
         self.assign(arr_result)
 
+    def divideBy(self, scalar : int = None) -> None :
+        arr_result = []
+        
+        if scalar != None and scalar != 0:
+            matrix1 = self.buffer
+            
+            for i in range(len(matrix1)):
+                arr_col = []
+                for j in range(len(matrix1[0])):
+                    arr_col.append(matrix1[i][j] / scalar)
+                arr_result.append(arr_col)
+        
+        self.assign(arr_result)
+
 
     # linear algebra operational
-    def transpose(self):
-        trp = [[self.buffer[i][j] for i in range(self.sizeY)] for j in range(self.sizeX)]
-        self.assign(trp)
+    def transpose(self) -> None :
+        # trp = [[self.buffer[i][j] for i in range(self.sizeY)] for j in range(self.sizeX)]
+        # self.assign(trp)
+        self.assign(np.transpose(self.buffer))
 
     #deteminan with np
-    def dummy_getdet(self) -> int :
+    def getDeterminant(self) -> int :
         return np.linalg.det(np.array(self.buffer))
 
-    def squashMat(m : List[List[int]]) -> List[int]:
+    def getSquashedMatrix(m : List[List[int]]) -> List[int]:
         return [ i for j in range(len(m)) for i in m[j]]
 
+
+    #tulis
     def describe(self):
         print('Matrix buffer: ')
         for i in range(self.sizeY):
@@ -136,7 +120,7 @@ class Matrix:
 
 
 # static method
-def identity_matrix(dimension : int) -> List[List[int]] :
+def generateIdentityMatrix(dimension : int) -> List[List[int]] :
     # Membuat matriks identitas sesuai dimensi matriks A
     identity = [[0 for j in range(dimension)] for i in range(dimension)]
     for i in range(dimension):

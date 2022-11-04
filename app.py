@@ -1,5 +1,5 @@
 import src.eigenfaces as ef
-from src.matrix import Matrix, identity_matrix
+from src.matrix import Matrix, generateIdentityMatrix
 
 #debug
 import random
@@ -8,21 +8,21 @@ if __name__ == '__main__':
     k = [[6,1,1], [4, -2, 5], [2,8,7]]
     m = Matrix(k)
     
-    print("determinan", m.dummy_getdet())
+    print("determinan", m.getDeterminant())
 
     # ef.squashMat(k)
 
-    m.describe()
+    m.describe() # awal
 
     m.subtractBy(k)
 
-    m.describe()
+    m.describe() #setelah dikurangi dengan matrix dengan nilai yang sama
 
     print('\nadd images values matrix simulations\n')
 
     matOfMatrix = [Matrix() for i in range(10)]
     for i in range(10):
-            dummyMat = [[random.randint(1,10) for i in range(3)] for j in range(3)]
+            dummyMat = [[random.randint(1,10) for i in range(3)] for j in range(3)] # buat n matrix random
 
             matOfMatrix[i].assign(dummyMat)
 
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     for i in range(10):
         summaryMat.addBy(matOfMatrix[i].getMatrix())
     
-    summaryMat.divideBy(scalar=10)
+    summaryMat.divideBy(scalar=10) # simulasi perata-rataan
 
     summaryMat.describe()
 
