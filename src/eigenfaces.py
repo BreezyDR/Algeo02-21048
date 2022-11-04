@@ -15,23 +15,23 @@ import numpy as np
 #     return matriksnilaitengah
 
 
-def subtract_matrix(matrix1 : List[List[int]], matrix2 : List[List[int]]) -> List[int] :
-    arr_result = []
-    for i in range(len(matrix1)):
-        arr_col = []
-        for j in range(len(matrix1[0])):
-            arr_col.append(matrix1[i][j] - matrix2[i][j])
-        arr_result.append(arr_col)
-    return arr_result
+# def subtract_matrix(matrix1 : List[List[int]], matrix2 : List[List[int]]) -> List[int] :
+#     arr_result = []
+#     for i in range(len(matrix1)):
+#         arr_col = []
+#         for j in range(len(matrix1[0])):
+#             arr_col.append(matrix1[i][j] - matrix2[i][j])
+#         arr_result.append(arr_col)
+#     return arr_result
 
 
-def multiply_matrix(matrix1 : List[List[int]], matrix2 : List[List[int]]) -> List[int] :
-    arr_result = [[0 for j in range(len(matrix2[0]))] for i in range(len(matrix1))]
-    for i in range(len(matrix1)):
-        for j in range(len(matrix2[0])):
-            for k in range(0, len(matrix2)):
-                arr_result[i][j] = (matrix1[i][k] * matrix2[k][j])
-    return arr_result
+# def multiply_matrix(matrix1 : List[List[int]], matrix2 : List[List[int]]) -> List[int] :
+#     arr_result = [[0 for j in range(len(matrix2[0]))] for i in range(len(matrix1))]
+#     for i in range(len(matrix1)):
+#         for j in range(len(matrix2[0])):
+#             for k in range(0, len(matrix2)):
+#                 arr_result[i][j] = (matrix1[i][k] * matrix2[k][j])
+#     return arr_result
 
 
 def euclidean_distance(vector1 : List[int], vector2 : List[int]) -> List[int] :

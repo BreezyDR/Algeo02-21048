@@ -13,11 +13,11 @@ class Matrix:
     #     self.sizeY = sizeY
     #     self.buffer = [[0 for i in range(self.sizeX)] for j in range(self.sizeY)]
 
-    def __init__(self, matrix) -> None:
-        self.assign(matrix=matrix)
-
-
-    
+    def __init__(self, matrix=None) -> None:
+        if matrix != None:
+            self.assign(matrix=matrix)
+        else:
+            self.assign(matrix=[[]])
 
     def assign(self, matrix: List[List[int]]):
         self.buffer = [[i for i in matrix[j]] for j in range(len(matrix))] #is a deepcopy
@@ -31,6 +31,73 @@ class Matrix:
             self.sizeX = 0
         else :
             self.sizeX = len(self.buffer[0])
+
+    ##operational
+    #everything is sbuject to change
+    def addBy(self, matrix) :
+        matrix1 = self.buffer
+        matrix2 = matrix
+
+        arr_result = []
+        for i in range(len(matrix1)):
+            arr_col = []
+            for j in range(len(matrix1[0])):
+                arr_col.append(matrix1[i][j] + matrix2[i][j])
+            arr_result.append(arr_col)
+        
+        self.assign(arr_result)
+
+    def subtractBy(self, matrix) :
+        matrix1 = self.buffer
+        matrix2 = matrix
+
+        arr_result = []
+        for i in range(len(matrix1)):
+            arr_col = []
+            for j in range(len(matrix1[0])):
+                arr_col.append(matrix1[i][j] - matrix2[i][j])
+            arr_result.append(arr_col)
+        
+        self.assign(arr_result)
+
+    def multiplyBy(self, matrix) :
+        matrix1 = self.buffer
+        matrix2 = matrix
+
+        arr_result = []
+        for i in range(len(matrix1)):
+            arr_col = []
+            for j in range(len(matrix1[0])):
+                arr_col.append(matrix1[i][j] * matrix2[i][j])
+            arr_result.append(arr_col)
+        
+        
+        self.assign(arr_result)
+
+    def divideBy(self, matrix=None, scalar=None) :
+        arr_result = []
+
+        if matrix != None:
+            matrix1 = self.buffer
+            matrix2 = matrix
+
+            
+            for i in range(len(matrix1)):
+                arr_col = []
+                for j in range(len(matrix1[0])):
+                    arr_col.append(matrix1[i][j] / matrix2[i][j])
+                arr_result.append(arr_col)
+
+        elif scalar != None and scalar != 0:
+            matrix1 = self.buffer
+            
+            for i in range(len(matrix1)):
+                arr_col = []
+                for j in range(len(matrix1[0])):
+                    arr_col.append(matrix1[i][j] / scalar)
+                arr_result.append(arr_col)
+        
+        self.assign(arr_result)
 
 
     #deteminan with np
