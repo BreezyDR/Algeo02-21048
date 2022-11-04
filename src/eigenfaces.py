@@ -1,17 +1,18 @@
 from typing import List, Optional
+import numpy as np
 
-def mean(matrix: List[List[int]]):
-    # matrix = [A_1, A_2, ... A_len(matrix)]
-    # dengan A: Vektor hasil linierisasi
-    # Menghitung elemen rata-rata dari tiap elemen i dari A
-    # dan memasukkannya ke matriksnilaitengah
-    matriksnilaitengah = []
-    for i in range(len(matrix[0])):
-        sum = 0
-        for j in range(len(matrix)):
-            sum += matrix[i][j]
-        matriksnilaitengah.append(sum / len(matrix[0]))
-    return matriksnilaitengah
+# def mean(matrix: List[List[int]]):
+#     # matrix = [A_1, A_2, ... A_len(matrix)]
+#     # dengan A: Vektor hasil linierisasi
+#     # Menghitung elemen rata-rata dari tiap elemen i dari A
+#     # dan memasukkannya ke matriksnilaitengah
+#     matriksnilaitengah = []
+#     for i in range(len(matrix[0])):
+#         sum = 0
+#         for j in range(len(matrix)):
+#             sum += matrix[i][j]
+#         matriksnilaitengah.append(sum / len(matrix[0]))
+#     return matriksnilaitengah
 
 
 def subtract_matrix(matrix1 : List[List[int]], matrix2 : List[List[int]]) -> List[int] :
@@ -83,7 +84,7 @@ def identity_matrix(dimension : int) -> List[List[int]] :
                 identity[i][j] = 1
     return identity
 
-
+# ini lom bisa
 def determinant(matrix : List[List[int]]) -> int :
     # Mencari determinan suatu matriks
     # Prekondisi: Matriks harus persegi
@@ -103,3 +104,9 @@ def determinant(matrix : List[List[int]]) -> int :
             det += tanda*matrix[0][i] * determinant(temp)
             tanda = -tanda
     return det
+
+def dummy_getdet(matrix : List[List[int]]) -> int :
+    return np.linalg.det(np.array(matrix))
+
+def squashMat(m : List[List[int]]) -> List[int]:
+    return [ i for j in range(len(m)) for i in m[j]]
