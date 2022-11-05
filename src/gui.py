@@ -12,5 +12,4 @@ class MainWeb(tk.Frame):
         self.widget()
         self.place()
     def widget(self):
-        self.master.title("Face Recognition Kelompok 14 Kelas 1")
-        self.pack(fill=BOTH, expand=True)
+        
