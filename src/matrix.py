@@ -118,7 +118,7 @@ class Matrix:
     def getMatrix(self):
         return self.buffer
 
-    def getEigenValues(self, real = True):
+    def getEigenValues(self, real = True) -> List[int]:
         """Menghasilkan list berupa eigen values"""
         A = sp.Matrix(self.buffer)
         lamda = sp.Symbol("lamda")
