@@ -1,5 +1,6 @@
 from typing import List, Optional
 import numpy as np
+import sympy as sp
 
 
 ###         JUST A LAYOUT        ###
@@ -117,6 +118,17 @@ class Matrix:
     def getMatrix(self):
         return self.buffer
 
+    def getEigenValues(self, real = True):
+        """Menghasilkan list berupa eigen values"""
+        A = sp.Matrix(self.buffer)
+        lamda = sp.Symbol("lamda")
+        larr = sp.eye(len(self.buffer))*lamda
+
+        B = larr-A
+        if real:
+            eigenValues = list(map(float,sp.solve(B.det(),lamda)))
+
+        return eigenValues
 
 
 # static method
@@ -128,3 +140,4 @@ def generateIdentityMatrix(dimension : int) -> List[List[int]] :
             if (i == j):
                 identity[i][j] = 1
     return identity
+    
