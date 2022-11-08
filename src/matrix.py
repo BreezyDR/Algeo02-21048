@@ -118,12 +118,19 @@ class Matrix:
     def getMatrix(self):
         return self.buffer
 
+
+    def isSquare(self):
+        return len(self.buffer) == len(self.buffer[0])
+
+
     def getEigenValues(self, real = True) -> List[int]:
         """Menghasilkan list berupa eigen values yang sudah terurut secara descending"""
+        if not self.isSquare():
+            raise Exception("Matrix must be a square matrix")
+        
         A = sp.Matrix(self.buffer)
         lamda = sp.Symbol("lamda")
         larr = sp.eye(len(self.buffer))*lamda
-
         B = larr-A
 
         eigenValues = sp.solve(B.det(),lamda)
