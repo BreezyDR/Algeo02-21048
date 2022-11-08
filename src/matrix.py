@@ -124,7 +124,11 @@ class Matrix:
 
 
     def getEigenValues(self, real = True) -> List[int]:
-        """Menghasilkan list berupa eigen values yang sudah terurut secara descending.
+        """ 
+        deprecated, too slow
+        =======
+
+        Menghasilkan list berupa eigen values yang sudah terurut secara descending.
         Akar-akar imajiner akan diabaikan."""
         if not self.isSquare():
             raise Exception("Matrix must be a square matrix")
