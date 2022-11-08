@@ -142,6 +142,30 @@ class Matrix:
         return eigenValues
 
 
+    def getEigenVectors(self, real = True) -> List[List[int]]:
+        """Menghasilkan basis ruang eigen dalam bentuk matrix dan sudah terurut menurut eigen value-nya."""
+        eigenValues = self.getEigenValues()
+        eigenVectors = []
+
+        A = sp.Matrix(self.buffer)
+        lamda = sp.Symbol("lamda", real=True)
+        larr = sp.eye(len(self.buffer))*lamda
+        B = larr-A
+
+        temprow = []
+        zeroMat = sp.zeros(B.rank(),1)
+        for e in eigenValues:
+            temp = B.copy().subs(lamda,e)
+            sol, params = temp.gauss_jordan_solve(zeroMat)
+            for param in params:
+                taus = {tau:0 for tau in params}
+                taus.update({param: 1})
+                temprow = [tau[0] for tau in sol.xreplace(taus).tolist()]
+                eigenVectors.append(temprow)
+
+        eigenVectors = sp.Matrix(eigenVectors).T.tolist()
+        return eigenVectors
+
 # static method
 def generateIdentityMatrix(dimension : int) -> List[List[int]] :
     # Membuat matriks identitas sesuai dimensi matriks A
