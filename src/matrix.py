@@ -124,12 +124,13 @@ class Matrix:
 
 
     def getEigenValues(self, real = True) -> List[int]:
-        """Menghasilkan list berupa eigen values yang sudah terurut secara descending"""
+        """Menghasilkan list berupa eigen values yang sudah terurut secara descending.
+        Akar-akar imajiner akan diabaikan."""
         if not self.isSquare():
             raise Exception("Matrix must be a square matrix")
         
         A = sp.Matrix(self.buffer)
-        lamda = sp.Symbol("lamda")
+        lamda = sp.Symbol("lamda", real=True)
         larr = sp.eye(len(self.buffer))*lamda
         B = larr-A
 
