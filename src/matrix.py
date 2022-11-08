@@ -119,14 +119,17 @@ class Matrix:
         return self.buffer
 
     def getEigenValues(self, real = True) -> List[int]:
-        """Menghasilkan list berupa eigen values"""
+        """Menghasilkan list berupa eigen values yang sudah terurut secara descending"""
         A = sp.Matrix(self.buffer)
         lamda = sp.Symbol("lamda")
         larr = sp.eye(len(self.buffer))*lamda
 
         B = larr-A
+
+        eigenValues = sp.solve(B.det(),lamda)
         if real:
-            eigenValues = list(map(float,sp.solve(B.det(),lamda)))
+            eigenValues = list(map(float,eigenValues))
+        eigenValues = np.flip(np.sort(eigenValues)).tolist()
 
         return eigenValues
 
