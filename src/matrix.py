@@ -123,6 +123,8 @@ class Matrix:
         return len(self.buffer) == len(self.buffer[0])
 
 
+
+
     def getEigenValues(self, real = True) -> List[int]:
         """ 
         deprecated, too slow
@@ -180,3 +182,27 @@ def generateIdentityMatrix(dimension : int) -> List[List[int]] :
                 identity[i][j] = 1
     return identity
     
+
+def QR_Decomposititon_GS(mat: List[List[int]]) -> tuple[List[List[int]], List[List[int]]]:
+    """Dekomposisi QR dengan algoritma Gram-Schmidt Orthogonalization
+    Too slow, still. O(2mn²).
+    
+    Must try Schwarz-Rutishauser Algorithm O(mn²)"""
+    mat = np.array(mat)
+    length = len(mat)
+
+    e = np.empty((length,length))
+    a = mat.T
+    for i in range(length):
+        u = np.copy(a[i])
+        for j in range(i):
+            u -= (a[i] @ e[j]) * e[j]
+        e[i] = u/np.linalg.norm(u)
+
+    R = np.zeros((length,length))
+    for i in range(length):
+        for j in range(i, length):
+            R[i][j] = a[j]@e[i]
+    Q = e.T
+
+    return (Q,R)
