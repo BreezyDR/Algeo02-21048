@@ -2,3 +2,6 @@
 .venv/
 .vscode/
 __pycache__/
+
+public/images/*
+*.pck
