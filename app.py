@@ -12,10 +12,8 @@ import os
 import random
 
 if __name__ == '__main__':
-    # print(type('asd'))
     # k = [[6, 1, 1], [4, -2, 5], [2, 8, 7]]
     # m = Matrix(k)
-    
     # print("determinan", m.getDeterminant())
 
     # # ef.squashMat(k)

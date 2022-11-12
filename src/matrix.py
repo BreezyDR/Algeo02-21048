@@ -1,129 +1,98 @@
 from typing import List, Optional
+from numpy.typing import ArrayLike
+
 import numpy as np
 import sympy as sp
 
 
-###         JUST A LAYOUT        ###
-# WE MIGHT USE NUMPY ARRAY INSTEAD #
 class Matrix:
-    def __init__(self, matrix : List[List[int]] = None) -> None:
+    def __init__(self, matrix : ArrayLike = None) -> None:
         if matrix != None:
             self.assign(matrix=matrix)
-        else:
-            self.assign(matrix=[[]])
 
-    def assign(self, matrix: List[List[int]]) -> None :
-        self.buffer = [[i for i in matrix[j]] for j in range(len(matrix))] #is a deepcopy
+    def assign(self, matrix: ArrayLike) -> None :
+        self.buffer = np.array(matrix)
 
         self.adjustSize()
 
     def adjustSize(self) -> None :
-        self.sizeY = len(self.buffer)
-        
-        if self.sizeY == 0:
-            self.sizeX = 0
-        else :
-            self.sizeX = len(self.buffer[0])
+        self.sizeX = self.buffer.shape[0]
+        self.sizeY = self.buffer.shape[1]
 
-    ##operational
-    #everything is sbuject to change
-    def addBy(self, matrix : List[List[int]] = None) -> None :
-        if matrix != None:
-            arr_result = []
-            for i in range(len(self.buffer)):
-                arr_col = []
-                for j in range(len(self.buffer[0])):
-                    arr_col.append(self.buffer[i][j] + matrix[i][j])
-                arr_result.append(arr_col)
-            
-            self.assign(arr_result)
-
-    def subtractBy(self, matrix : List[List[int]] = None) -> None :
-        if matrix != None:
-            arr_result = []
-            for i in range(len(self.buffer)):
-                arr_col = []
-                for j in range(len(self.buffer[0])):
-                    arr_col.append(self.buffer[i][j] - matrix[i][j])
-                arr_result.append(arr_col)
-            
-            self.assign(arr_result)
-
-    def multiplyBy(self, matrix : Optional[List[List[int]]] = None, scalar : Optional[int] = None) -> None :
-        arr_result = []
-
-        if matrix != None:
-            self.assign(np.matmul(self.buffer, matrix))
+    def addBy(self, matrix : ArrayLike = None) -> None :
+        if matrix is None:
             return
 
-        elif scalar != None and scalar != 0:
-            matrix1 = self.buffer
-            
-            for i in range(len(matrix1)):
-                arr_col = []
-                for j in range(len(matrix1[0])):
-                    arr_col.append(matrix1[i][j] / scalar)
-                arr_result.append(arr_col)
+        matrix = np.array(matrix)
+
+        if self.buffer.shape != matrix.shape :
+            print('IN Matrix.py, ADDED 2 ARRAYS OF DIFFERENT SHAPE')
         
-        self.assign(arr_result)
+        self.assign(np.add(self.buffer, matrix))
+
+    def subtractBy(self, matrix : ArrayLike = None) -> None :
+        if matrix is None:
+            return
+
+        matrix = np.array(matrix)
+
+        if self.buffer.shape != matrix.shape :
+            print('IN Matrix.py, SUBTRACTED 2 ARRAYS OF DIFFERENT SHAPE')
+
+        self.assign(np.subtract(self.buffer, matrix))
+
+    def multiplyBy(self, matrix : Optional[ArrayLike] = None, scalar : Optional[int] = None) -> None :
+        if matrix is None and scalar == None :
+            return
+
+        matrix = np.array(matrix)
+
+        if self.buffer.shape != matrix.shape and matrix.shape != (1, 1) and scalar == None:
+            print('IN Matrix.py, MULTIPLIED 2 ARRAYS OF DIFFERENT SHAPE')
+
+        if matrix is not None:
+            self.assign(np.multiply(self.buffer, matrix))
+        elif scalar != None:
+            self.assign(np.multiply(self.buffer, scalar))
+
 
     def divideBy(self, scalar : int = None) -> None :
-        arr_result = []
+        if scalar != 0 and scalar != None:
+            self.assign(np.divide(self.buffer, scalar))
         
-        if scalar != None and scalar != 0:
-            matrix1 = self.buffer
-            
-            for i in range(len(matrix1)):
-                arr_col = []
-                for j in range(len(matrix1[0])):
-                    arr_col.append(matrix1[i][j] / scalar)
-                arr_result.append(arr_col)
-        
-        self.assign(arr_result)
-
-
     # linear algebra operational
     def transpose(self) -> None :
-        # trp = [[self.buffer[i][j] for i in range(self.sizeY)] for j in range(self.sizeX)]
-        # self.assign(trp)
         self.assign(np.transpose(self.buffer))
 
     #deteminan with np
     def getDeterminant(self) -> int :
         return np.linalg.det(np.array(self.buffer))
 
-    def getSquashedMatrix(m : List[List[int]]) -> List[int]:
-        return [ i for j in range(len(m)) for i in m[j]]
-
-
     #tulis
-    def describe(self):
+    def describe(self) -> None :
         print('Matrix buffer: ')
-        for i in range(self.sizeY):
-            for j in range(self.sizeX):
-                print(self.buffer[i][j], end='\t')
-            print()
+        print(self.buffer)
         print('sizeX :', self.getSizeX())
         print('sizeY :', self.getSizeY())
         print()
 
-
     #getter setter
-    def getSizeX(self):
+    def getSizeX(self) -> int :
         return self.sizeX
 
-    def getSizeY(self):
+    def getSizeY(self) -> int :
         return self.sizeY
 
-    def getMatrix(self):
+    def getMatrix(self) -> np.ndarray :
         return self.buffer
 
-
-    def isSquare(self):
-        return len(self.buffer) == len(self.buffer[0])
-
+    def isSquare(self) -> bool:
+        return (self.buffer.shape[0] == self.buffer.shape[1])
 
 
+    # static methods
+    def getSquashedMatrix(m : ArrayLike) -> np.ndarray:
+        return np.array(m).reshape(-1, 1)
 
     def getEigenValues(self, real = True) -> List[int]:
         """ 
