@@ -21,11 +21,46 @@ class Matrix:
     def __repr__(self) -> str(np.ndarray):
         return str(self.buffer)
 
+    def __add__(self, p) :
+        return Matrix(np.add(self.buffer, p.buffer))
+
+    def __sub__(self, p) :
+        return Matrix(np.subtract(self.buffer, p.buffer))
+
+    def __mul__(self, p) :
+        return Matrix(np.multiply(self.buffer, p.buffer))
+    
+    def __matmul__(self, p) :
+        return Matrix(np.matmul(self.buffer, p.buffer))
+
+    def __iadd__(self, p) :
+        self.addBy(p.buffer)
+        return self
+
+    def __isub__(self, p) :
+        self.subtractBy(p.buffer)
+        return self
+
+    def __imul__(self, p) :
+        self.multiplyBy(p.buffer)
+        return self
+
+    def __idiv__(self, p) :
+        self.divideBy(p.buffer)
+        return self
+
+    def __imulmat__(self, p) :
+        self.buffer @= p.buffer
+        return self
+
+
     def assign(self, matrix: ArrayLike) -> None :
-        self.buffer = np.array(matrix)
+        self.buffer = np.array(matrix).astype(np.uint8) # typecast here might causes issues
         self.shape = self.buffer.shape
 
         self.adjustSize()
+
+        return self
 
     def adjustSize(self) -> None :
         self.sizeX = self.buffer.shape[0]
@@ -42,6 +77,8 @@ class Matrix:
         
         self.assign(np.add(self.buffer, matrix))
 
+        return self
+
     def subtractBy(self, matrix : ArrayLike = None) -> None :
         if matrix is None:
             return
@@ -52,6 +89,8 @@ class Matrix:
             print('IN Matrix.py, SUBTRACTED 2 ARRAYS OF DIFFERENT SHAPE')
 
         self.assign(np.subtract(self.buffer, matrix))
+
+        return self
 
     def multiplyBy(self, matrix : Optional[ArrayLike] = None, scalar : Optional[int] = None) -> None :
         if matrix is None and scalar == None :
@@ -67,10 +106,14 @@ class Matrix:
         elif scalar != None:
             self.assign(np.multiply(self.buffer, scalar))
 
+        return self
+
 
     def divideBy(self, scalar : int = None) -> None :
         if scalar != 0 and scalar != None:
             self.assign(np.divide(self.buffer, scalar))
+
+        return self
 
     def resize(self, size : tuple[int] | int) -> None:
         if not type(size) == int :
@@ -80,12 +123,15 @@ class Matrix:
             minDim = min(self.sizeX, self.sizeY)
             
             self.assign(cv2.resize(self.buffer[:minDim, :minDim], (size, size), interpolation=cv2.INTER_CUBIC))
-            
+        
+        return self
 
         
     # linear algebra operational
     def transpose(self) -> None :
         self.assign(np.transpose(self.buffer))
+
+        return self
 
     #deteminan with np
     def getDeterminant(self) -> int :
@@ -98,6 +144,8 @@ class Matrix:
         print('sizeX :', self.getSizeX())
         print('sizeY :', self.getSizeY())
         print()
+
+        return self
 
     def cv2show(self, name : str = 'default') -> None:
         cv2.imshow(name, self.buffer)
