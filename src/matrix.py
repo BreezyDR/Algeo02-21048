@@ -4,14 +4,26 @@ from numpy.typing import ArrayLike
 import numpy as np
 import sympy as sp
 
+import cv2
+
 
 class Matrix:
     def __init__(self, matrix : ArrayLike = None) -> None:
-        if matrix != None:
+        if np.any(matrix) != None:
             self.assign(matrix=matrix)
+
+    def __call__(self) -> np.ndarray :
+        return self.buffer
+
+    def __str__(self) -> str(np.ndarray):
+        return str(self.buffer)
+
+    def __repr__(self) -> str(np.ndarray):
+        return str(self.buffer)
 
     def assign(self, matrix: ArrayLike) -> None :
         self.buffer = np.array(matrix)
+        self.shape = self.buffer.shape
 
         self.adjustSize()
 
@@ -59,6 +71,17 @@ class Matrix:
     def divideBy(self, scalar : int = None) -> None :
         if scalar != 0 and scalar != None:
             self.assign(np.divide(self.buffer, scalar))
+
+    def resize(self, size : tuple[int] | int) -> None:
+        if not type(size) == int :
+            self.assign(cv2.resize(self.buffer, size, interpolation=cv2.INTER_CUBIC)) #here we use cv2.resize instead of np.resize,
+                                                                                    #since we need to interpolate missing values
+        else :
+            minDim = min(self.sizeX, self.sizeY)
+            
+            self.assign(cv2.resize(self.buffer[:minDim, :minDim], (size, size), interpolation=cv2.INTER_CUBIC))
+            
+
         
     # linear algebra operational
     def transpose(self) -> None :
@@ -76,6 +99,9 @@ class Matrix:
         print('sizeY :', self.getSizeY())
         print()
 
+    def cv2show(self, name : str = 'default') -> None:
+        cv2.imshow(name, self.buffer)
+
     #getter setter
     def getSizeX(self) -> int :
         return self.sizeX
@@ -88,6 +114,9 @@ class Matrix:
 
     def isSquare(self) -> bool:
         return (self.buffer.shape[0] == self.buffer.shape[1])
+
+    def getShape(self) -> tuple[int]:
+        return self.buffer.shape
 
 
     # static methods
@@ -165,7 +194,8 @@ def QR_Decomposititon_GS(mat: List[List[int]]) -> tuple[List[List[int]], List[Li
     for i in range(length):
         u = np.copy(a[i])
         for j in range(i):
-            u -= (a[i] @ e[j]) * e[j]
+            # u -= (a[i] @ e[j]) * e[j]
+            u = u - (a[i] @ e[j]) * e[j] # note: ntah mengapa harus diginiin, karena bakal error otherwise
         e[i] = u/np.linalg.norm(u)
 
     R = np.zeros((length,length))

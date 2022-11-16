@@ -3,5 +3,8 @@
 .vscode/
 __pycache__/
 
+
+public/_delete/*
 public/images/*
 *.pck
+*.zip
