@@ -5,13 +5,12 @@ import os
 from sklearn.preprocessing import normalize
 
 import src.utility as util
+from src.file import readFolder, readFile
 
 if __name__ == '__main__':
-    images_path = 'public/images/'
-    files_path = [os.path.join(images_path, p) for p in sorted(os.listdir(images_path))]
-    files = [cv2.imread(i, cv2.IMREAD_GRAYSCALE) for i in files_path] # modification-free files stream
+    files, files_path = readFolder('public/images/')
 
-    new_file = cv2.imread('public/target/target.jpg', cv2.IMREAD_GRAYSCALE)
+    new_file = readFile('public/target/target.jpg')
 
     desiredSize = 256
     
@@ -80,31 +79,31 @@ if __name__ == '__main__':
     print(files_path[minIdx], 'ini path nya')
 
 
-    for i in range(4):
-        powe1 = W[i] @ uAll.transpose()
-        # print(mean.shape, powe1.shape, 'shapes')
-        pic1 = (mean + (powe1 * 99 * 1000 / 13))/2
-        # print('WOOOOO', mean, powe1, np.mean(mean), np.mean(powe1))
-        pic1 =  pic1.reshape(int(pic1.shape[0]**.5), -1).astype(np.uint8)
+    # for i in range(4):
+    #     powe1 = W[i] @ uAll.transpose()
+    #     # print(mean.shape, powe1.shape, 'shapes')
+    #     pic1 = (mean + (powe1 * 99 * 1000 / 13))/2
+    #     # print('WOOOOO', mean, powe1, np.mean(mean), np.mean(powe1))
+    #     pic1 =  pic1.reshape(int(pic1.shape[0]**.5), -1).astype(np.uint8)
         
         
         
-        # print('sadss', pic1, pic1.shape)
-        cv2.imshow('hito' + str(i), pic1)
+    #     # print('sadss', pic1, pic1.shape)
+    #     cv2.imshow('hito' + str(i), pic1)
     
     
 
-    kazz = uAll.transpose()[8] #* 25500 # why 25500?
-    print(max(kazz), 'max', 'mean:', int(np.mean(kazz*1000000)))
-    kazz = (kazz * 25500)
-    print(max(kazz), 'max')
-    print(np.sum(kazz), 'norval') #norm val
-    kazz = kazz.reshape(int(kazz.shape[0]**.5), -1)
+    # kazz = uAll.transpose()[8] #* 25500 # why 25500?
+    # print(max(kazz), 'max', 'mean:', int(np.mean(kazz*1000000)))
+    # kazz = (kazz * 25500)
+    # print(max(kazz), 'max')
+    # print(np.sum(kazz), 'norval') #norm val
+    # kazz = kazz.reshape(int(kazz.shape[0]**.5), -1)
     
-    print(kazz)
+    # print(kazz)
 
-    cv2.imshow('asdhash', kazz)
-    cv2.waitKey()
+    # cv2.imshow('asdhash', kazz)
+    # cv2.waitKey()
     
     
     # gb1 = np.array([eigVecL[1][i] * imagesDiff[i] for i in range(imgCount)])
