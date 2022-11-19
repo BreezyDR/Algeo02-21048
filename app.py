@@ -10,12 +10,14 @@ if __name__ == '__main__':
     images_path = 'public/images/'
     files_path = [os.path.join(images_path, p) for p in sorted(os.listdir(images_path))]
     files = [cv2.imread(i, cv2.IMREAD_GRAYSCALE) for i in files_path] # modification-free files stream
-    
+
+    new_file = cv2.imread('public/target/target.jpg', cv2.IMREAD_GRAYSCALE)
 
     desiredSize = 256
     
 
     images = np.array([util.resize(i, desiredSize).astype(np.uint8).flatten() for i in files])
+    newImage = np.array(util.resize(new_file, desiredSize).astype(np.uint8).flatten())
 
     imgCount = len(images)
 
@@ -25,6 +27,7 @@ if __name__ == '__main__':
 
     # differ images
     imagesDiff = np.array([(images[i]-mean).astype(np.uint8) for i in range(imgCount)])
+    newImageDiff = (newImage-mean).astype(np.uint8)
 
     # print('gaba', images.shape, mean.shape, imagesDiff.shape)
     # (44, 65536) (65536,) (44, 65536)
@@ -56,52 +59,40 @@ if __name__ == '__main__':
     W = np.array([[uAll.transpose()[i] @ imagesDiff[j] for i in range(imgCount)] for j in range(imgCount)])
     print(W.shape, 'was')
     print(W[1].shape, uAll.transpose()[1].shape)
-    powe1 = W[1] @ uAll.transpose()
-    print(mean.shape, powe1.shape, 'shapes')
-    pic1 = (mean + (powe1 * 99 * 1000 / 13))/2
-    print('WOOOOO', mean, powe1, np.mean(mean), np.mean(powe1))
-    pic1 =  pic1.reshape(int(pic1.shape[0]**.5), -1).astype(np.uint8)
+
+    # omega
+    Omega = [W[i] @ uAll.transpose() for i in range(imgCount)]
+
+    #new stuffs
+    WNew = [uAll.transpose()[i] @ newImageDiff for i in range(imgCount)]
+    OmegaNew = WNew @ uAll.transpose()
+
+    xxx = 0
+    minIdx = 0
+    min = np.linalg.norm(OmegaNew - Omega[xxx])
+    while xxx < imgCount:
+        if np.linalg.norm(OmegaNew - Omega[xxx]) < min:
+            min = np.linalg.norm(OmegaNew - Omega[xxx])
+            minIdx = xxx
+        xxx += 1
+    
+    print(minIdx, 'min idx in mint')
+    print(files_path[minIdx], 'ini path nya')
+
+
+    for i in range(4):
+        powe1 = W[i] @ uAll.transpose()
+        # print(mean.shape, powe1.shape, 'shapes')
+        pic1 = (mean + (powe1 * 99 * 1000 / 13))/2
+        # print('WOOOOO', mean, powe1, np.mean(mean), np.mean(powe1))
+        pic1 =  pic1.reshape(int(pic1.shape[0]**.5), -1).astype(np.uint8)
+        
+        
+        
+        # print('sadss', pic1, pic1.shape)
+        cv2.imshow('hito' + str(i), pic1)
     
     
-    
-    print('sadss', pic1, pic1.shape)
-    cv2.imshow('hito', pic1)
-    
-    
-
-
-    # print(uAll.shape, 'uall')
-    # print(uAll)
-    # print(np.sum(uAll.transpose()[1]))
-    # print(np.sum(uAll.transpose()[2]))
-
-    # k = np.array([[1,1,1,1], [2,2,2,2]]).transpose()
-    # k = normalize(k, axis=0, norm='l1')
-    # print(k.shape, 'k')
-    # print(k, 'ini k')
-    # print(np.sum(k.transpose()[1]))
-
-    ####sini
-    # # compute Array W of u (eigenfaces)
-    # imagesDiff = np.array([i.flatten() for i in imagesDiff])
-    # print(imagesDiff.shape, uAll.shape, '59')
-
-    # # x = uall
-    # # b = dif
-    # # a = b xT
-    # aRess = imagesDiff @ uAll
-    # print(aRess.shape) #?
-    # gb1 = aRess[1] @ uAll.transpose()
-    # print(gb1.shape, gb1.shape[0]**.5)
-    # zzz = int(gb1.shape[0]**.5)
-    # print(gb1)
-    # gb1 = normalize(cv2.resize(gb1, (zzz, zzz)))
-
-    # cv2.imshow('sad', images[1])    
-    # print(images[1])
-    # cv2.imshow('tes1', gb1)
-    # print(gb1)
-    ####sini
 
     kazz = uAll.transpose()[8] #* 25500 # why 25500?
     print(max(kazz), 'max', 'mean:', int(np.mean(kazz*1000000)))
