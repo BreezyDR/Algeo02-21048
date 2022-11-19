@@ -20,7 +20,7 @@ class Matrix:
 
     def __repr__(self) -> str(np.ndarray):
         return str(self.buffer)
-
+    
     def __add__(self, p) :
         return Matrix(np.add(self.buffer, p.buffer))
 
@@ -54,17 +54,23 @@ class Matrix:
         return self
 
 
-    def assign(self, matrix: ArrayLike) -> None :
+    def assign(self, matrix: ArrayLike) :
         self.buffer = np.array(matrix).astype(np.uint8) # typecast here might causes issues
-        self.shape = self.buffer.shape
+
+        if len(self.buffer.shape) <= 1 :
+            self.shape = (self.buffer.shape[0], 1)
+        else:
+            self.shape = self.buffer.shape
+
+        self.T = self.buffer
 
         self.adjustSize()
 
         return self
 
     def adjustSize(self) -> None :
-        self.sizeX = self.buffer.shape[0]
-        self.sizeY = self.buffer.shape[1]
+        self.sizeX = self.shape[0]
+        self.sizeY = self.shape[1]
 
     def addBy(self, matrix : ArrayLike = None) -> None :
         if matrix is None:
@@ -160,17 +166,25 @@ class Matrix:
     def getMatrix(self) -> np.ndarray :
         return self.buffer
 
+    def getSquashedMatrix(self) -> np.ndarray :
+        return self.buffer.reshape(-1, 1)
+
+    def getUnsquashedMatrix(self) -> np.ndarray :
+        return self.buffer.reshape(-1, int(np.ceil(self.shape[0]**.5)))
+    
+    def getTransposedMatrix(self) -> np.ndarray :
+        return self.buffer.transpose()
+
     def isSquare(self) -> bool:
         return (self.buffer.shape[0] == self.buffer.shape[1])
 
     def getShape(self) -> tuple[int]:
         return self.buffer.shape
+    
+    
 
 
     # static methods
-    def getSquashedMatrix(m : ArrayLike) -> np.ndarray:
-        return np.array(m).reshape(-1, 1)
-
     def getEigenValues(self, real = True) -> List[int]:
         """ 
         deprecated, too slow

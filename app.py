@@ -1,163 +1,134 @@
-import src.eigenfaces as ef
-from src.Matrix import Matrix, QR_Decomposititon_GS
-
-# from src.featureExtraction import batch_extractor, show_img
-# from src.Matcher import Matcher
-
 import cv2
 import numpy as np
 import os
 
-#debug
-import random
+from sklearn.preprocessing import normalize
+
+import src.utility as util
 
 if __name__ == '__main__':
-    # k = [[6, 1, 1], [4, -2, 5], [2, 8, 7]]
-    # m = Matrix(k)
-    # print("determinan", m.getDeterminant())
-
-    # # ef.squashMat(k)
-
-    # m.describe()  # awal
-
-    # m.subtractBy(k)
-
-    # m.describe()  #setelah dikurangi dengan matrix dengan nilai yang sama
-
-    # print('\nadd images values matrix simulations\n')
-
-    # matOfMatrix = [Matrix() for i in range(10)]
-    # for i in range(10):
-    #     dummyMat = [[random.randint(1, 10) for k in range(3)] for j in range(3)]  # buat n matrix random
-
-    #     matOfMatrix[i].assign(dummyMat)
-
-    # summaryMat = Matrix(k)
-    # for i in range(10):
-    #     summaryMat.addBy(matOfMatrix[i].getMatrix())
-    
-    # summaryMat.divideBy(scalar=10)  # simulasi perata-rataan
-
-    # summaryMat.describe()
-
-    # toBeTransposed = Matrix(matrix=[[1, 2, 3], [4, 5, 6]])
-    # toBeTransposed.describe()
-    # toBeTransposed.transpose()
-    # toBeTransposed.describe()
-
-
-    # fE.batch_extractor('public/images/')
-    # k = fE.extract_features('public/images/basuta.jpg')
-    # print(len(k), len(k[0]))
-    # fE.show_img('public/images/basuta.jpg')
-
-
-    # zz1 = np.array([[1, 2, 4], [12, 13, 3], [13, 9, 3]])
-    # u, l = QR_Decomposititon_GS(zz1)
-    # print(zz1)
-    # print(u)
-
-    # AN ATTEMPT TO 100% USE NUMPY.ARRAY TO SOLVE FOR EVERYTHING
-    # WE MIGHT MAKE AN numpy.array API WRAPPER INSTEAD IN THE FUTURE    
-
-    # qq, qs = np.linalg.eig([[7, 3], [3, -1]])
-    # print(qq, qs)   
-
-    # sizeX, sizeY = 256, 256
-    desiredSize = 256
-
-    # cv2.namedWindow('result', cv2.WINDOW_FREERATIO)
     images_path = 'public/images/'
     files_path = [os.path.join(images_path, p) for p in sorted(os.listdir(images_path))]
     files = [cv2.imread(i, cv2.IMREAD_GRAYSCALE) for i in files_path] # modification-free files stream
-
-    images = [Matrix(i) for i in files]
-
-    for i in images:
-        i.resize(desiredSize)
-
-    print(images[0].shape)
-    
-    # images[9].cv2show()
-    # cv2.imshow('bycv', files[9])
-
-    # print(images[9].shape, np.array(files[9]).shape)
     
 
+    desiredSize = 256
+    
+
+    images = np.array([util.resize(i, desiredSize).astype(np.uint8).flatten() for i in files])
+
+    imgCount = len(images)
 
 
+    # mean face
+    mean = np.mean([k for k in images], axis=0).astype(np.uint8)
 
+    # differ images
+    imagesDiff = np.array([(images[i]-mean).astype(np.uint8) for i in range(imgCount)])
 
+    # print('gaba', images.shape, mean.shape, imagesDiff.shape)
+    # (44, 65536) (65536,) (44, 65536)
 
+    # A
+    A = np.array([i for i in images]).transpose() # sesuai definisi A di file
+    print('asds', A.shape) # (65536, 44)
 
+    # Covarianve Matrix
+    # C = A @ A.transpose() / imgCount
 
+    #instead
 
+    # L = C'
+    L =  A.transpose() @ A
+    # (44, 44)
 
+    # compute eigenvalues and eigenvector of L
+    eigValL, eigVecL = np.linalg.eig(L)
 
+    # print(eigValL.shape, eigVecL.shape)
 
+    # compute eigenvalues and eigenvector of C
+    uAll = A @ eigVecL #eigVegU
+    uAll = normalize(uAll, axis=0, norm='l1') # 0 karena mereka (65535, 44) sehingga terbagi DI DALAM 65355 value itu, bukan 44
 
-    # x, y = files[0].shape
-    # print(x)
-    # for i in range(len(files)):
-    #     # files[i] = cv2.resize(files[i], (files[i].shape[1]//4, files[i].shape[0]//4)) # faster calculation
-    #     files[i] = cv2.resize(files[i], (x, x), interpolation=cv2.INTER_CUBIC)
-    #     files[i] = np.array(files[i]).reshape(-1, 1)
-    #     print(files[i].shape)
-        
-    # filesMeaned = np.mean(files, axis=0).astype(np.uint8) # psi
+    # compute weights
+    print('wei', uAll.transpose()[1].shape, imagesDiff[1].shape)
+    W = np.array([[uAll.transpose()[i] @ imagesDiff[j] for i in range(imgCount)] for j in range(imgCount)])
+    print(W.shape, 'was')
+    print(W[1].shape, uAll.transpose()[1].shape)
+    powe1 = W[1] @ uAll.transpose()
+    print(mean.shape, powe1.shape, 'shapes')
+    pic1 = (mean + (powe1 * 99 * 1000 / 13))/2
+    print('WOOOOO', mean, powe1, np.mean(mean), np.mean(powe1))
+    pic1 =  pic1.reshape(int(pic1.shape[0]**.5), -1).astype(np.uint8)
     
     
-    # filesDiff = [np.subtract(files[i], filesMeaned).astype(np.uint8) for i in range(len(files))] # a
     
-    # fm = filesMeaned.reshape(int(filesMeaned.shape[0]**0.5), -1).astype(np.uint8)
-
-    # for i in range(2):
-    #     k = files[i].reshape(int((files[i].shape[0])**0.5), -1)
-    #     kd = filesDiff[i].reshape(int((filesDiff[i].shape[0])**0.5), -1)
-    #     cv2.imshow('asli' + str(i), k)
-    #     cv2.imshow('diff' + str(i), kd)
-    # # kdc = cv2.cvtColor(filesDiff[1], cv2.COLOR_BGR2RGB).reshape(int((filesDiff[1].shape[0])**0.5), -1)
-
-    # # print(files[1].shape, filesDiff[1].shape)
+    print('sadss', pic1, pic1.shape)
+    cv2.imshow('hito', pic1)
+    
+    
 
 
-    # c = np.multiply(files, np.transpose(files))
-    # print(np.array(files).shape, c.shape)
-    # # c' = a.at
-    # # u = A.v
-    # # c'u = l.u
+    # print(uAll.shape, 'uall')
+    # print(uAll)
+    # print(np.sum(uAll.transpose()[1]))
+    # print(np.sum(uAll.transpose()[2]))
 
+    # k = np.array([[1,1,1,1], [2,2,2,2]]).transpose()
+    # k = normalize(k, axis=0, norm='l1')
+    # print(k.shape, 'k')
+    # print(k, 'ini k')
+    # print(np.sum(k.transpose()[1]))
 
-    # eigwnp = np.linalg.eig(k)
-    # print(eigwnp, len(eigwnp))
+    ####sini
+    # # compute Array W of u (eigenfaces)
+    # imagesDiff = np.array([i.flatten() for i in imagesDiff])
+    # print(imagesDiff.shape, uAll.shape, '59')
 
-    # la, dmy, dmy2 = np.linalg.svd(k, full_matrices=0)
-    # Q, R = QR_Decomposititon_GS(k)
-    # print(Q, Q.shape)
+    # # x = uall
+    # # b = dif
+    # # a = b xT
+    # aRess = imagesDiff @ uAll
+    # print(aRess.shape) #?
+    # gb1 = aRess[1] @ uAll.transpose()
+    # print(gb1.shape, gb1.shape[0]**.5)
+    # zzz = int(gb1.shape[0]**.5)
+    # print(gb1)
+    # gb1 = normalize(cv2.resize(gb1, (zzz, zzz)))
 
-    # cv2.imshow('with np', la)
-    # cv2.imshow('result', Q*1000) #emang ga supposed to be shown
-    # cv2.imshow('average', fm)
-    # cv2.imshow('asli', k)
-    # cv2.imshow('diff', kd)
+    # cv2.imshow('sad', images[1])    
+    # print(images[1])
+    # cv2.imshow('tes1', gb1)
+    # print(gb1)
+    ####sini
 
+    kazz = uAll.transpose()[8] #* 25500 # why 25500?
+    print(max(kazz), 'max', 'mean:', int(np.mean(kazz*1000000)))
+    kazz = (kazz * 25500)
+    print(max(kazz), 'max')
+    print(np.sum(kazz), 'norval') #norm val
+    kazz = kazz.reshape(int(kazz.shape[0]**.5), -1)
+    
+    print(kazz)
+
+    cv2.imshow('asdhash', kazz)
     cv2.waitKey()
     
-
     
+    # gb1 = np.array([eigVecL[1][i] * imagesDiff[i] for i in range(imgCount)])
+    # print(gb1.shape)
+    # ef1 = np.sum(gb1, axis=0).astype(np.uint8)
+    # print(ef1.shape)
 
-
-
-    # print(files)
-    # print(np.mean(files, axis=0))
-    
-    # l = cv2.imread('public/images/basuta.jpg', cv2.IMREAD_GRAYSCALE)
-    # l = cv2.resize(l, (l.shape[1]//4, l.shape[0]//4)) # faster calculation
-    
-    
-
-    
-    # print(np.array(l).shape)
-    # cv2.imshow('result', l)
+    # cv2.imshow('s',ef1)
     # cv2.waitKey()
-    
+
+
+
+    # cv2.imshow('nasa', mean)
+    # for i in range(1, 4):
+    #     cv2.imshow(str(i), imagesDiff[i])
+    #     cv2.imshow(str(i+100), images[i])
+
+    # cv2.waitKey()

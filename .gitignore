@@ -4,7 +4,7 @@
 __pycache__/
 
 
-public/_delete/*
+public/*
 public/images/*
 *.pck
 *.zip
