@@ -24,3 +24,12 @@ def magiclyNormalize(arr : np.ndarray) -> np.ndarray:
 def magiclyDisplay(arr : np.ndarray, name : str = 'from utility.py') -> None:
     # it is a magic since we cant find why 25500 is the right spot
     cv2.imshow(name, arr*25500)
+
+def normalizeNP(arr : np.ndarray) -> np.ndarray:
+    sum = np.sum(arr)
+
+    print(arr.shape)
+
+    arr = np.array([[np.float64(arr[j][i]/sum) for i in range(arr.shape[1])] for j in range(arr.shape[0])])
+
+    return arr
