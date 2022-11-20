@@ -6,14 +6,22 @@ from tkinter.ttk import Label, Style, Button, Frame
 from PIL import Image, ImageTk
 import cv2
 
+import ctypes
+ 
+
+
 root = Tk()
 root.title("Face Recognition - Reigenface")
 root.geometry("1600x800")
 
+ctypes.windll.shcore.SetProcessDpiAwareness(1) 
+# it alters dpi
+# https://coderslegacy.com/python/problem-solving/improve-tkinter-resolution/
+
 # Styles
 
 s = Style()
-s.configure('Mainframe.Tframe', background = '#d6f3ff')
+s.configure('Mainframe.TFrame', background = '#d6f3ff')
 s.configure('SubTitle.TLabel', font = ('Helvetica', 14), foreground = 'black', padding = (5, 5, 5, 5), width = 20)
 s.configure('Upload.TButton', font = ('arial', 10, 'underline'), foreground = 'blue')
 s.configure('Title.TLabel', font=('Helvetica', 20, 'bold'), foreground = 'black', padding = (5, 5, 5, 5))
@@ -33,7 +41,7 @@ def upload_image():
 
 # Frames
 
-mainframe = Frame(root, width=1600, height=800, style='Mainframe.Tframe')
+mainframe = Frame(root, width=1600, height=800, style='Mainframe.TFrame')
 mainframe.grid(row=0, column=0, sticky='NSEW')
 
 topframe = Frame(mainframe)
@@ -74,7 +82,7 @@ testimageLabel.grid(row=0, column=0, sticky='WE')
 closestResultLabel = Label(conversionFrame, text='Closest Result', style= 'SubTitle.TLabel')
 closestResultLabel.grid(row=0, column=1, sticky='WE')
 
-executionLabel = Label(conversionFrame, text='Execution time:', style='SubTitle.Tlabel')
+executionLabel = Label(conversionFrame, text='Execution time:', style='SubTitle.TLabel')
 executionLabel.grid(row=2, column=0, sticky='WE')
 
 
