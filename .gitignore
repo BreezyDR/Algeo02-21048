@@ -2,3 +2,9 @@
 .venv/
 .vscode/
 __pycache__/
+
+
+.ignore
+*.pck
+*.zip
+*.json

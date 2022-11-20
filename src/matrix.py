@@ -1,130 +1,190 @@
 from typing import List, Optional
+from numpy.typing import ArrayLike
+
 import numpy as np
 import sympy as sp
 
+import cv2
 
-###         JUST A LAYOUT        ###
-# WE MIGHT USE NUMPY ARRAY INSTEAD #
+
 class Matrix:
-    def __init__(self, matrix : List[List[int]] = None) -> None:
-        if matrix != None:
+    def __init__(self, matrix : ArrayLike = None) -> None:
+        if np.any(matrix) != None:
             self.assign(matrix=matrix)
-        else:
-            self.assign(matrix=[[]])
 
-    def assign(self, matrix: List[List[int]]) -> None :
-        self.buffer = [[i for i in matrix[j]] for j in range(len(matrix))] #is a deepcopy
+    def __call__(self) -> np.ndarray :
+        return self.buffer
+
+    def __str__(self) -> str(np.ndarray):
+        return str(self.buffer)
+
+    def __repr__(self) -> str(np.ndarray):
+        return str(self.buffer)
+    
+    def __add__(self, p) :
+        return Matrix(np.add(self.buffer, p.buffer))
+
+    def __sub__(self, p) :
+        return Matrix(np.subtract(self.buffer, p.buffer))
+
+    def __mul__(self, p) :
+        return Matrix(np.multiply(self.buffer, p.buffer))
+    
+    def __matmul__(self, p) :
+        return Matrix(np.matmul(self.buffer, p.buffer))
+
+    def __iadd__(self, p) :
+        self.addBy(p.buffer)
+        return self
+
+    def __isub__(self, p) :
+        self.subtractBy(p.buffer)
+        return self
+
+    def __imul__(self, p) :
+        self.multiplyBy(p.buffer)
+        return self
+
+    def __idiv__(self, p) :
+        self.divideBy(p.buffer)
+        return self
+
+    def __imulmat__(self, p) :
+        self.buffer @= p.buffer
+        return self
+
+
+    def assign(self, matrix: ArrayLike) :
+        self.buffer = np.array(matrix).astype(np.uint8) # typecast here might causes issues
+
+        if len(self.buffer.shape) <= 1 :
+            self.shape = (self.buffer.shape[0], 1)
+        else:
+            self.shape = self.buffer.shape
+
+        self.T = self.buffer
 
         self.adjustSize()
 
+        return self
+
     def adjustSize(self) -> None :
-        self.sizeY = len(self.buffer)
-        
-        if self.sizeY == 0:
-            self.sizeX = 0
-        else :
-            self.sizeX = len(self.buffer[0])
+        self.sizeX = self.shape[0]
+        self.sizeY = self.shape[1]
 
-    ##operational
-    #everything is sbuject to change
-    def addBy(self, matrix : List[List[int]] = None) -> None :
-        if matrix != None:
-            arr_result = []
-            for i in range(len(self.buffer)):
-                arr_col = []
-                for j in range(len(self.buffer[0])):
-                    arr_col.append(self.buffer[i][j] + matrix[i][j])
-                arr_result.append(arr_col)
-            
-            self.assign(arr_result)
-
-    def subtractBy(self, matrix : List[List[int]] = None) -> None :
-        if matrix != None:
-            arr_result = []
-            for i in range(len(self.buffer)):
-                arr_col = []
-                for j in range(len(self.buffer[0])):
-                    arr_col.append(self.buffer[i][j] - matrix[i][j])
-                arr_result.append(arr_col)
-            
-            self.assign(arr_result)
-
-    def multiplyBy(self, matrix : Optional[List[List[int]]] = None, scalar : Optional[int] = None) -> None :
-        arr_result = []
-
-        if matrix != None:
-            self.assign(np.matmul(self.buffer, matrix))
+    def addBy(self, matrix : ArrayLike = None) -> None :
+        if matrix is None:
             return
 
-        elif scalar != None and scalar != 0:
-            matrix1 = self.buffer
-            
-            for i in range(len(matrix1)):
-                arr_col = []
-                for j in range(len(matrix1[0])):
-                    arr_col.append(matrix1[i][j] / scalar)
-                arr_result.append(arr_col)
+        matrix = np.array(matrix)
+
+        if self.buffer.shape != matrix.shape :
+            print('IN Matrix.py, ADDED 2 ARRAYS OF DIFFERENT SHAPE')
         
-        self.assign(arr_result)
+        self.assign(np.add(self.buffer, matrix))
+
+        return self
+
+    def subtractBy(self, matrix : ArrayLike = None) -> None :
+        if matrix is None:
+            return
+
+        matrix = np.array(matrix)
+
+        if self.buffer.shape != matrix.shape :
+            print('IN Matrix.py, SUBTRACTED 2 ARRAYS OF DIFFERENT SHAPE')
+
+        self.assign(np.subtract(self.buffer, matrix))
+
+        return self
+
+    def multiplyBy(self, matrix : Optional[ArrayLike] = None, scalar : Optional[int] = None) -> None :
+        if matrix is None and scalar == None :
+            return
+
+        matrix = np.array(matrix)
+
+        if self.buffer.shape != matrix.shape and matrix.shape != (1, 1) and scalar == None:
+            print('IN Matrix.py, MULTIPLIED 2 ARRAYS OF DIFFERENT SHAPE')
+
+        if matrix is not None:
+            self.assign(np.multiply(self.buffer, matrix))
+        elif scalar != None:
+            self.assign(np.multiply(self.buffer, scalar))
+
+        return self
+
 
     def divideBy(self, scalar : int = None) -> None :
-        arr_result = []
-        
-        if scalar != None and scalar != 0:
-            matrix1 = self.buffer
+        if scalar != 0 and scalar != None:
+            self.assign(np.divide(self.buffer, scalar))
+
+        return self
+
+    def resize(self, size : tuple[int] | int) -> None:
+        if not type(size) == int :
+            self.assign(cv2.resize(self.buffer, size, interpolation=cv2.INTER_CUBIC)) #here we use cv2.resize instead of np.resize,
+                                                                                    #since we need to interpolate missing values
+        else :
+            minDim = min(self.sizeX, self.sizeY)
             
-            for i in range(len(matrix1)):
-                arr_col = []
-                for j in range(len(matrix1[0])):
-                    arr_col.append(matrix1[i][j] / scalar)
-                arr_result.append(arr_col)
+            self.assign(cv2.resize(self.buffer[:minDim, :minDim], (size, size), interpolation=cv2.INTER_CUBIC))
         
-        self.assign(arr_result)
+        return self
 
-
+        
     # linear algebra operational
     def transpose(self) -> None :
-        # trp = [[self.buffer[i][j] for i in range(self.sizeY)] for j in range(self.sizeX)]
-        # self.assign(trp)
         self.assign(np.transpose(self.buffer))
+
+        return self
 
     #deteminan with np
     def getDeterminant(self) -> int :
         return np.linalg.det(np.array(self.buffer))
 
-    def getSquashedMatrix(m : List[List[int]]) -> List[int]:
-        return [ i for j in range(len(m)) for i in m[j]]
-
-
     #tulis
-    def describe(self):
+    def describe(self) -> None :
         print('Matrix buffer: ')
-        for i in range(self.sizeY):
-            for j in range(self.sizeX):
-                print(self.buffer[i][j], end='\t')
-            print()
+        print(self.buffer)
         print('sizeX :', self.getSizeX())
         print('sizeY :', self.getSizeY())
         print()
 
+        return self
+
+    def cv2show(self, name : str = 'default') -> None:
+        cv2.imshow(name, self.buffer)
 
     #getter setter
-    def getSizeX(self):
+    def getSizeX(self) -> int :
         return self.sizeX
 
-    def getSizeY(self):
+    def getSizeY(self) -> int :
         return self.sizeY
 
-    def getMatrix(self):
+    def getMatrix(self) -> np.ndarray :
         return self.buffer
 
+    def getSquashedMatrix(self) -> np.ndarray :
+        return self.buffer.reshape(-1, 1)
 
-    def isSquare(self):
-        return len(self.buffer) == len(self.buffer[0])
+    def getUnsquashedMatrix(self) -> np.ndarray :
+        return self.buffer.reshape(-1, int(np.ceil(self.shape[0]**.5)))
+    
+    def getTransposedMatrix(self) -> np.ndarray :
+        return self.buffer.transpose()
+
+    def isSquare(self) -> bool:
+        return (self.buffer.shape[0] == self.buffer.shape[1])
+
+    def getShape(self) -> tuple[int]:
+        return self.buffer.shape
+    
+    
 
 
-
-
+    # static methods
     def getEigenValues(self, real = True) -> List[int]:
         """ 
         deprecated, too slow
@@ -196,7 +256,8 @@ def QR_Decomposititon_GS(mat: List[List[int]]) -> tuple[List[List[int]], List[Li
     for i in range(length):
         u = np.copy(a[i])
         for j in range(i):
-            u -= (a[i] @ e[j]) * e[j]
+            # u -= (a[i] @ e[j]) * e[j]
+            u = u - (a[i] @ e[j]) * e[j] # note: ntah mengapa harus diginiin, karena bakal error otherwise
         e[i] = u/np.linalg.norm(u)
 
     R = np.zeros((length,length))
