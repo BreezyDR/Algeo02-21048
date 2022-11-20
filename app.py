@@ -7,6 +7,19 @@ import os
 import src.utility as util
 from src.file import readFolder, readFile
 
+def debugShow(name, mat):
+    print('\t' + name)
+
+    # as int
+    # cv2.imshow(name, mat.astype(np.uint8))
+
+    # as np float64
+    mat = mat/mat.max()
+    cv2.imshow(name, mat)
+    print(mat)
+    print('mean = ' + str(np.sum(mat)/mat.shape[0]/mat.shape[1]) + '\n\n')
+    print('type: ' , type(mat.flatten()[0]))
+
 if __name__ == '__main__':
 
     # read files streams
@@ -17,12 +30,12 @@ if __name__ == '__main__':
     desiredSize = 256
     
     # reformat files into usable images
-    images = np.array([util.resize(i, desiredSize).astype(np.uint8).flatten() for i in files])
-    newImages = np.array([util.resize(i, desiredSize).astype(np.uint8).flatten() for i in new_files])
+    images = np.array([util.resize(i, desiredSize).flatten() for i in files])
+    newImages = np.array([util.resize(i, desiredSize).flatten() for i in new_files])
 
 
     # mean face
-    mean = np.mean([k for k in images], axis=0).astype(np.uint8)
+    mean = np.mean([k for k in images], axis=0)
 
     # differ images
     imagesDiff = np.array([(images[i]-mean).astype(np.uint8) for i in range(imgCount)])
@@ -46,11 +59,16 @@ if __name__ == '__main__':
     # compute weights
     W = np.array([[uAll.transpose()[i] @ imagesDiff[j] for i in range(imgCount)] for j in range(imgCount)])
 
-    print(type(W[0][0]))
-    print(util.normalizeNP(W), 's')
+    # print(type(W[0][0]))
+    # print(util.normalizeNP(W), 's')
 
     # omega
-    Omega = [W[i] @ uAll.transpose() for i in range(imgCount)]
+    Omega = [W[i] @ uAll.transpose() for i in range(imgCount)] # somehow result nya kinda unsatisfying?
+
+    # for i in range(len(uAll.transpose())):
+    #     debugShow(str(i), util.unflatten(uAll.transpose()[i]))
+    #     debugShow(str(i+1000), util.unflatten(Omega[i]))
+    # debugShow('mean', util.unflatten(mean))
 
     #new stuffs
     WssNew = np.array([[uAll.transpose()[i] @ newImagesDiff[j] for i in range(imgCount)] for j in range(newImgCount)])
@@ -61,12 +79,25 @@ if __name__ == '__main__':
         xxx = 0
         minIdx = 0
         min = np.linalg.norm(OmegassNew[i] - Omega[xxx])
+        result = []
         while xxx < imgCount:
             if np.linalg.norm(OmegassNew[i] - Omega[xxx]) < min:
                 min = np.linalg.norm(OmegassNew[i] - Omega[xxx])
                 minIdx = xxx
+            result.append(np.linalg.norm(OmegassNew[i] - Omega[xxx]))
             xxx += 1
+            
         
+        print('Top 3 Result:')
+        print(np.array(files_path)[np.argsort(result)][:3])
+        # print('result: ', result)
+        
+        # debugShow('ori' + str(i), util.unflatten(np.array(images[i])))
+        # debugShow('reconstruct' + str(i), util.unflatten(np.array(mean + Omega[i]*2000)))
+        print(np.mean(mean), np.mean(Omega[i]))
+
         print(minIdx, 'min idx in mint')
         print(files_path[minIdx], 'ini path nya')
         print(new_files_path[i], 'ini path nya')
+
+    cv2.waitKey()

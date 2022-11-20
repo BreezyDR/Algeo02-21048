@@ -4,8 +4,7 @@
 __pycache__/
 
 
-public/*
-public/images/*
+.ignore
 *.pck
 *.zip
 *.json
