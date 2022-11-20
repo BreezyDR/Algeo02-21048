@@ -6,9 +6,17 @@ from tkinter.ttk import Label, Style, Button, Frame
 from PIL import Image, ImageTk
 import cv2
 
+import ctypes
+ 
+
+
 root = Tk()
 root.title("Face Recognition - Reigenface")
 root.geometry("1600x800")
+
+ctypes.windll.shcore.SetProcessDpiAwareness(1) 
+# it alters dpi
+# https://coderslegacy.com/python/problem-solving/improve-tkinter-resolution/
 
 # Styles
 
