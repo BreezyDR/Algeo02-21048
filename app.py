@@ -7,6 +7,7 @@ import os
 import src.utility as util
 from src.file import readFolder, readFile
 
+# will only be here in the development phase
 def debugShow(name, mat):
     print('\t' + name)
 
@@ -16,6 +17,8 @@ def debugShow(name, mat):
     # as np float64
     mat = mat/mat.max()
     cv2.imshow(name, mat)
+
+    # debug
     print(mat)
     print('mean = ' + str(np.sum(mat)/mat.shape[0]/mat.shape[1]) + '\n\n')
     print('type: ' , type(mat.flatten()[0]))
@@ -30,12 +33,12 @@ if __name__ == '__main__':
     desiredSize = 256
     
     # reformat files into usable images
-    images = np.array([util.resize(i, desiredSize).flatten() for i in files])
+    images = np.array([util.resize(i, desiredSize).flatten() for i in files]) # (x, 256^2)
     newImages = np.array([util.resize(i, desiredSize).flatten() for i in new_files])
 
 
     # mean face
-    mean = np.mean([k for k in images], axis=0)
+    mean = np.mean([k for k in images], axis=0) # axis = 0 since we avg EVERY corresponding pixel
 
     # differ images
     imagesDiff = np.array([(images[i]-mean).astype(np.uint8) for i in range(imgCount)])
@@ -50,54 +53,58 @@ if __name__ == '__main__':
 
     # compute eigenvalues and eigenvector of L
     eigValL, eigVecL = np.linalg.eig(L)
+    # eigVecL = util.normalizeSQR(eigVecL)
 
     # compute eigenvalues and eigenvector of C
-    uAll = A @ eigVecL #eigVegU
-    # uAll = normalize(uAll, axis=0, norm='l1') # 0 karena mereka (65535, 44) sehingga terbagi DI DALAM 65355 value itu, bukan 44
-    uAll = util.normalizeNP(uAll)
+    eigVecC = A @ eigVecL #eigVegU
+    # eigVecC = util.normalizeNP(eigVecC)
+    eigVecC = util.normalizeSQR(eigVecC)
+    print('iegvecC',  eigVecC.shape)
 
     # compute weights
-    W = np.array([[uAll.transpose()[i] @ imagesDiff[j] for i in range(imgCount)] for j in range(imgCount)])
+    W = np.array([[eigVecC.transpose()[i] @ imagesDiff[j] for i in range(imgCount)] for j in range(imgCount)])
+    print('2>>>>>>>>>>>>>>>>>.',  W.shape, W)
 
-    # print(type(W[0][0]))
-    # print(util.normalizeNP(W), 's')
 
     # omega
-    Omega = [W[i] @ uAll.transpose() for i in range(imgCount)] # somehow result nya kinda unsatisfying?
+    Omega = [W[i] @ eigVecC.transpose() for i in range(imgCount)] # somehow result nya kinda unsatisfying?
+    print(mean.shape, ' = ' ,(eigVecC).shape,  '+', (W[5]).shape , ' =' ,(eigVecC @ W[5].transpose()).shape, 'shapey')
 
-    # for i in range(len(uAll.transpose())):
-    #     debugShow(str(i), util.unflatten(uAll.transpose()[i]))
+    for i in range(2, 6):
+        debugShow('recon5' + str(i), util.unflatten(mean + eigVecC @ W[i].transpose()))
+
+    # for i in range(len(eigVecC.transpose())):
+    #     debugShow(str(i), util.unflatten(eigVecC.transpose()[i]))
     #     debugShow(str(i+1000), util.unflatten(Omega[i]))
-    # debugShow('mean', util.unflatten(mean))
+    debugShow('mean', util.unflatten(mean))
 
     #new stuffs
-    WssNew = np.array([[uAll.transpose()[i] @ newImagesDiff[j] for i in range(imgCount)] for j in range(newImgCount)])
-    OmegassNew = [WssNew[i] @ uAll.transpose() for i in range(newImgCount)]
+    W_target = np.array([[eigVecC.transpose()[i] @ newImagesDiff[j] for i in range(imgCount)] for j in range(newImgCount)])
+    Omega_target = [W_target[i] @ eigVecC.transpose() for i in range(newImgCount)]
 
     for i in range(newImgCount):
-        print('\n\nini ke - ' + str(i))
-        xxx = 0
+        print('\n\nini ke - ' + str(i+1))
+        j = 0
         minIdx = 0
-        min = np.linalg.norm(OmegassNew[i] - Omega[xxx])
+        min = np.linalg.norm(Omega_target[i] - Omega[j])
         result = []
-        while xxx < imgCount:
-            if np.linalg.norm(OmegassNew[i] - Omega[xxx]) < min:
-                min = np.linalg.norm(OmegassNew[i] - Omega[xxx])
-                minIdx = xxx
-            result.append(np.linalg.norm(OmegassNew[i] - Omega[xxx]))
-            xxx += 1
+        while j < imgCount:
+            if np.linalg.norm(Omega_target[i] - Omega[j]) < min:
+                min = np.linalg.norm(Omega_target[i] - Omega[j])
+                minIdx = j
+            result.append(np.linalg.norm(Omega_target[i] - Omega[j]))
+            j += 1
             
         
         print('Top 3 Result:')
-        print(np.array(files_path)[np.argsort(result)][:3])
-        # print('result: ', result)
+        res = np.array(files_path)[np.argsort(result)][:3]
+        for k in range(len(res)):
+            print(res[k], ' \t with value: ', np.array(result)[np.argsort(result)][:3][k])
         
-        # debugShow('ori' + str(i), util.unflatten(np.array(images[i])))
-        # debugShow('reconstruct' + str(i), util.unflatten(np.array(mean + Omega[i]*2000)))
-        print(np.mean(mean), np.mean(Omega[i]))
+        # print(np.mean(mean), np.mean(Omega[i]))
 
-        print(minIdx, 'min idx in mint')
-        print(files_path[minIdx], 'ini path nya')
-        print(new_files_path[i], 'ini path nya')
+        # print(minIdx, 'min idx in mint')
+        print(files_path[minIdx], '<- path file training dengan kemiripan terbesar')
+        print(new_files_path[i], '<- path file target pengenalan wajah')
 
     cv2.waitKey()
