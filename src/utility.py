@@ -6,6 +6,7 @@ from sklearn.preprocessing import normalize
 
 # pass check
 def resize(arr : np.ndarray, size : tuple[int] | int) -> np.ndarray:
+    # print(arr)
     if not type(size) == int :
         arr = cv2.resize(arr, size, interpolation=cv2.INTER_CUBIC) #here we use cv2.resize instead of np.resize,
                                                                   #since we need to interpolate missing values
