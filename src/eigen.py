@@ -1,28 +1,35 @@
 import cmath
 import numpy as np
+import sympy as sp
 from typing import List
 from scipy.linalg import hessenberg
 from matrix import Matrix
+import qr
 
 # @squareOnly()
-def getEigenValues(A:np.ndarray, iteration=50, mode='gs') -> List[int]:
+def getEigenValues(A:np.ndarray, iteration=50, mode='gs', h_opt=True) -> List[float]:
     """ 
     deprecated, too slow
     =======
 
     Menghasilkan list berupa eigen values yang sudah terurut secara descending.
     Akar-akar imajiner akan diabaikan."""
-    H, Q = hessenberg(A, calc_q=True)
+    if(h_opt):
+        H, Q = hessenberg(A, calc_q=True)
+    else:
+        H = A
     Ak = np.copy(H)
     n = Ak.shape[0]
     QQ = np.eye(n)
 
     if(mode == 'gs'):
-        qr_func = Matrix.qr_decomposititon_gs
+        qr_func = qr.qr_decomposititon_gs
     elif(mode == 'sr'):
-        qr_func = Matrix.qr_gs_modsr
+        qr_func = qr.qr_gs_modsr
     elif(mode == 'np'):
         qr_func = np.linalg.qr
+    elif(mode == 'hh'):
+        qr_func = qr.qr_hh
 
     for k in range(iteration):
         s = Ak.item(n-1, n-1)
@@ -53,74 +60,49 @@ def getEigenValues(A:np.ndarray, iteration=50, mode='gs') -> List[int]:
     Ak = np.diag(Ak)                         
     es = [Ak[i] if i in np.argwhere(es == 0)[:,0] 
             else es[i] for i in range(n)]
+    # for i in range(len(es)-1,-1,-1):
+    #     if np.iscomplex(es[i]):
+    #         print('complex')
+    #         es[i] = np.conj(es[i])
+    #         break
 
     return es
 
+def rot_complex(val):
 
-# def getEigenVectors() -> List[List[int]]:
-#     """Menghasilkan basis ruang eigen dalam bentuk matrix dan sudah terurut menurut eigen value-nya."""
-#     eigenValues = self.getEigenValues()
-#     eigenVectors = []
+    v_rr = val.real * cmath.cos(cmath.pi / 2) + val.imag * cmath.sin(cmath.pi / 2)
+    v_ri = val.real * cmath.sin(cmath.pi / 2) + val.imag * cmath.cos(cmath.pi / 2)
 
-#     A = sp.Matrix(self.buffer)
-#     lamda = sp.Symbol("lamda", real=True)
-#     larr = sp.eye(len(self.buffer))*lamda
-#     B = larr-A
-
-#     temprow = []
-#     zeroMat = sp.zeros(B.rank(),1)
-#     for e in eigenValues:
-#         temp = B.copy().subs(lamda,e)
-#         sol, params = temp.gauss_jordan_solve(zeroMat)
-#         for param in params:
-#             taus = {tau:0 for tau in params}
-#             taus.update({param: 1})
-#             temprow = [tau[0] for tau in sol.xreplace(taus).tolist()]
-#             eigenVectors.append(temprow)
-
-#     eigenVectors = sp.Matrix(eigenVectors).T.tolist()
-#     return eigenVectors
+    return v_rr + 1.j * v_ri
 
 
-# @staticmethod
-# def qr_decomposititon_gs(mat: List[List[int]]) -> tuple[List[List[int]], List[List[int]]]:
-#     """Dekomposisi QR dengan algoritma Gram-Schmidt Orthogonalization
-#     Too slow, still. O(2mn²).
-    
-#     Must try Schwarz-Rutishauser Algorithm O(mn²)"""
-#     mat = np.array(mat)
-#     length = len(mat)
+def getEigenVectors(A: np.ndarray, eigenValues:List[float]) -> np.ndarray:
+    """Menghasilkan basis ruang eigen dalam bentuk matrix dan sudah terurut menurut eigen value-nya."""
+    m, n = np.shape(A)
+    V = np.identity(n, dtype=complex)
 
-#     e = np.empty((length,length))
-#     a = mat.T
-#     for i in range(length):
-#         u = np.copy(a[i])
-#         for j in range(i):
-#             u -= (a[i] @ e[j]) * e[j]
-#         e[i] = u/np.linalg.norm(u)
+    for (e,z) in zip(eigenValues, range(m)):
+        Av = np.array(A, dtype=complex)
 
-#     R = np.zeros((length,length))
-#     for i in range(length):
-#         for j in range(i, length):
-#             R[i][j] = a[j]@e[i]
-#     Q = e.T
+        for j in range(m):
+            Av[j,j] -= e
 
-#     return (Q,R)
+        for i in range(m-1):
+            alpha = Av[i,i]
+            if alpha not in [0, 1]:
+               for j in range(m):
+                   Av[i,j] = Av[i,j] / alpha
+            if alpha == 0:
+                Av[[i, i+1]] = Av[[i+1, i]]
 
-
-# @staticmethod
-# def qr_gs_modsr(A):
-#     A = np.array(A)
-#     (m,n) = np.shape(A)
-
-#     Q = np.array(A)      
-#     R = np.zeros((n, n))
-
-#     for k in range(n):
-#         for i in range(k):
-#             R[i,k] = Q[:,i].T@(Q[:,k])
-#             Q[:,k] = Q[:,k] - R[i,k] * Q[:,i]
-
-#         R[k,k] = np.linalg.norm(Q[:,k]); Q[:,k] = Q[:,k] / R[k,k]
-    
-#     return -Q, -R
+            for k in range(m):
+                if i != k:
+                    theta = Av[k,i]
+                    for j in range(i,m):
+                        Av[k,j] = Av[k,j] - Av[i,j] * theta
+        V[:,z] = Av[:,m-1]; V[m-1][z] = 1.0
+        nV = np.linalg.norm(V[:,z])
+        V[:,z] = np.array([v / nV for v in V[:,z]], dtype=complex)
+        V[:,z] = [rot_complex(v) for v in V[:,z]] if e.imag != 0 else V[:,z]
+        z = z + 1
+    return V
