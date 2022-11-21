@@ -7,18 +7,10 @@ from PIL import Image, ImageTk
 import cv2
 
 import ctypes
- 
- # Upload image
-def upload_image():
-    types = [('Jpg Files', '*.jpg'),
-    ('PNG Files','*.png'), ('Jpeg Files', '*.jpeg')]
-    filename = filedialog.askopenfilename(multiple=False, filetypes=types)
-    # testphoto = Image.open(filename)
-    # testphoto = testphoto.resize((400,400), Image.ANTIALIAS)
-    # testphoto = ImageTk.PhotoImage(testphoto)
-    # e1 = Label(conversionFrame, image=testphoto)
-    # e1.grid(row=1,column=0,sticky='WE')
 
+from src.EigenSolver import EigenSolver
+from src.file import readFolder, readFile
+ 
 class GUIRunner():
     def __init__(self) -> None:
         root = Tk()
@@ -59,16 +51,16 @@ class GUIRunner():
         uploaddatatestLabel = Label(uploadphotoFrame, text="Masukkan data test Anda", style= 'SubTitle.TLabel')
         uploaddatatestLabel.grid(row=0, column=0, sticky= 'WE')
 
-        datatestButton = Button(uploadphotoFrame, text = 'Choose File', style='Upload.TButton',width=10)
+        datatestButton = Button(uploadphotoFrame, text = 'Choose File', style='Upload.TButton',width=10, command = lambda:self.upload_trainfolder())
         datatestButton.grid(row=1, column=0, sticky='WE')
 
         uploadtestphotoLabel = Label(uploadphotoFrame, text="Masukkan image Anda", style= 'SubTitle.TLabel')
         uploadtestphotoLabel.grid(row=2, column=0, sticky= 'WE')
 
-        testphotoButton = Button(uploadphotoFrame, text = 'Choose File', style='Upload.TButton',width=10,command=lambda:upload_image())
+        testphotoButton = Button(uploadphotoFrame, text = 'Choose File', style='Upload.TButton',width=10,command = lambda:self.upload_targetImage())
         testphotoButton.grid(row=3, column=0, sticky='WE')
 
-        resultLabel = Label(uploadphotoFrame, text='Result', style='Upload.TButton')
+        resultLabel = Button(uploadphotoFrame, text='Result', style='Upload.TButton', command = lambda:self.solve_pca())
         resultLabel.grid(row=4, column=0, sticky='WE')
 
 
@@ -85,8 +77,41 @@ class GUIRunner():
 
         self.root = root
         self.style = s
+
+        self.eigensolver = EigenSolver(256)
     
 
     def run(self):
         # Execution
         self.root.mainloop()
+
+
+
+     # Upload image
+    def upload_targetImage(self):
+        types = [('Jpg Files', '*.jpg'),
+        ('PNG Files','*.png'), ('Jpeg Files', '*.jpeg')]
+        filename = filedialog.askopenfilename(multiple=False, filetypes=types)
+        # testphoto = Image.open(filename)
+        # testphoto = testphoto.resize((400,400), Image.ANTIALIAS)
+        # testphoto = ImageTk.PhotoImage(testphoto)
+        # e1 = Label(conversionFrame, image=testphoto)
+        # e1.grid(row=1,column=0,sticky='WE')
+        if filename != '':
+            # self.targetFiles = [filename] # we forced AN image path as folder paths
+            file, file_path = readFile(filename)
+            self.eigensolver.solve(file, file_path)
+
+    def upload_trainfolder(self):
+        folderName = filedialog.askdirectory()
+        # testphoto = Image.open(filename)
+        # testphoto = testphoto.resize((400,400), Image.ANTIALIAS)
+        # testphoto = ImageTk.PhotoImage(testphoto)
+        # e1 = Label(conversionFrame, image=testphoto)
+        # e1.grid(row=1,column=0,sticky='WE')
+        if folderName != '':
+            files, files_path = readFolder(folderName)
+            self.eigensolver.train(files=files, files_path=files_path)
+
+    def solve_pca(self):
+        self.eigensolver.showResult()

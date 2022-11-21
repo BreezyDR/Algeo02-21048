@@ -27,6 +27,8 @@ class EigenSolver():
         self.desiredSize = desiredSize
 
     def train(self, files : str, files_path : str) -> None :
+        # files = np.array([np.array(i) for i in files])
+
         imgCount = len(files)
         desiredSize = self.getDesiredSize()
 
@@ -77,6 +79,8 @@ class EigenSolver():
         if not self.hasTrained:
             print("You haven't trained any image into the solver yet")
             return
+
+        new_files = np.array(new_files)
 
         desiredSize = self.getDesiredSize()
         mean = self.mean

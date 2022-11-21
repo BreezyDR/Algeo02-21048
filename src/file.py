@@ -9,13 +9,12 @@ def readFolder(path: str) -> tuple[np.ndarray, str, int]:
     files_path = [os.path.join(path, p) for p in sorted(os.listdir(path))]
     files = np.array([cv2.imread(i, cv2.IMREAD_GRAYSCALE) for i in files_path])
 
-    return files, files_path, len(files_path)
+    return files, files_path
 
 def readFile(exact_path: str) -> np.ndarray:
-    file = cv2.imread(exact_path, cv2.IMREAD_GRAYSCALE)
+    file = np.array([cv2.imread(exact_path, cv2.IMREAD_GRAYSCALE)])
 
-    return file
-
+    return file, [exact_path]
 
 
 # dump calculated data into json
