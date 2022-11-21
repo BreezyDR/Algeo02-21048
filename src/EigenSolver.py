@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 import src.utility as util
 
+import time # we may use timeit instead
+
 # will only be here in the development phase
 def debugShow(name, mat):
     print('\t' + name)
@@ -27,6 +29,8 @@ class EigenSolver():
         self.desiredSize = desiredSize
 
     def train(self, files : str, files_path : str) -> None :
+        print('training started ...')
+        startTime = time.time()
         # files = np.array([np.array(i) for i in files])
 
         imgCount = len(files)
@@ -75,11 +79,18 @@ class EigenSolver():
         self.files_path = files_path
         self.image_path = None
 
+        print('training done')
+        deltaTime = time.time() - startTime
+        print('this process takes', deltaTime, 'seconds')
+
     
     def solve(self, new_files : str, new_files_path : str) -> None:
         if not self.hasTrained:
             print("You haven't trained any image into the solver yet")
             return
+
+        print('solving started ...')
+        startTime = time.time()
 
         new_files = np.array(new_files)
 
@@ -120,6 +131,10 @@ class EigenSolver():
 
         self.hasSolved = True
         self.new_files_path = new_files_path
+
+        print('solving done')
+        deltaTime = time.time() - startTime
+        print('this process takes', deltaTime, 'seconds')
 
 
     def showResult(self):
