@@ -22,9 +22,11 @@ def debugShow(name, mat):
 class EigenSolver():
     def __init__(self, desiredSize = None) -> None:
         self.hasTrained = False
+        self.hasSolved = False
+
         self.desiredSize = desiredSize
 
-    def train(self, files : str) -> None :
+    def train(self, files : str, files_path : str) -> None :
         imgCount = len(files)
         desiredSize = self.getDesiredSize()
 
@@ -68,9 +70,10 @@ class EigenSolver():
         self.distributedWeight = Omega
 
         self.hasTrained = True
+        self.files_path = files_path
 
     
-    def solve(self, new_files : str) -> None:
+    def solve(self, new_files : str, new_files_path : str) -> None:
         if not self.hasTrained:
             print("You haven't trained any image into the solver yet")
             return
@@ -108,7 +111,53 @@ class EigenSolver():
 
         # setting up values
         self.targetDistributedWeight = Omega_target
+        self.targetImgCount = newImgCount
 
+        self.hasSolved = True
+        self.new_files_path = new_files_path
+
+
+    def showResult(self):
+        if not self.hasTrained or not self.hasSolved:
+            print('please train images and solve for the solution before trying to show result')
+            return
+
+        for i in range(self.targetImgCount):
+            print('\n\nHasil pencocokan ke-' + str(i+1))
+            j = 0
+            minIdx = 0
+
+            min = np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j])
+            result = []
+            while j < self.trainImgCount:
+                # print(self.distributedWeight)
+                if np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j]) < min:
+                    min = np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j])
+                    minIdx = j
+                result.append(np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j]))
+                j += 1
+                
+            
+            print('Top 3 Result:')
+            res = np.array(self.files_path)[np.argsort(result)][:3]
+            for k in range(len(res)):
+                print(res[k], ' \t with value: ', np.array(result)[np.argsort(result)][:3][k])
+            
+            # print(np.mean(mean), np.mean(Omega[i]))
+
+            # print(minIdx, 'min idx in mint')
+            print(self.files_path[minIdx], '<- path file training dengan kemiripan terbesar')
+            print(self.new_files_path[i], '<- path file target pengenalan wajah')
+
+        cv2.waitKey()
+
+
+
+
+
+
+
+    # getter/setter
     def getDesiredSize(self) -> int:
         if self.desiredSize != None:
             return self.desiredSize
