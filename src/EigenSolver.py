@@ -73,6 +73,7 @@ class EigenSolver():
 
         self.hasTrained = True
         self.files_path = files_path
+        self.image_path = None
 
     
     def solve(self, new_files : str, new_files_path : str) -> None:
@@ -152,6 +153,8 @@ class EigenSolver():
             # print(minIdx, 'min idx in mint')
             print(self.files_path[minIdx], '<- path file training dengan kemiripan terbesar')
             print(self.new_files_path[i], '<- path file target pengenalan wajah')
+
+            self.image_path = self.files_path[minIdx]
 
         cv2.waitKey()
 

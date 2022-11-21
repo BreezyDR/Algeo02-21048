@@ -24,17 +24,25 @@ class GUIRunner():
         # it alters dpi
         # https://coderslegacy.com/python/problem-solving/improve-tkinter-resolution/
 
+        # variables
+        defaultImgDimension = 256
+
+        bgcolor = '#e1e2e1'
+        defaultImg = ImageTk.PhotoImage(Image.open('./public/default/default.jpg').resize((defaultImgDimension, defaultImgDimension), Image.ANTIALIAS))
+        
+
+
         # Styles
 
         s = Style()
-        bgcolor = '#e1e2e1'
+        
         s.configure('Mainframe.TFrame', background = bgcolor)
         s.configure('SubTitle.TLabel', font = ('Helvetica', 14), foreground = 'black', padding = (5, 5, 5, 5), width = 20, background = bgcolor)
         s.configure('Upload.TButton', font = ('arial', 10, 'underline'), foreground = 'blue', background= bgcolor)
         s.configure('Upload.TLabel', font = ('Helvetica', 10), foreground = 'blue', background= bgcolor)
         s.configure('Title.TLabel', font=('Helvetica', 20, 'bold'), foreground = 'black', padding = (5, 5, 5, 5), background=bgcolor)
         s.configure('Frameling.TFrame', background = bgcolor)
-        
+
 
         # Frames
         root.grid_rowconfigure(0, weight=1)
@@ -99,21 +107,34 @@ class GUIRunner():
         testimageLabel = Label(conversionFrame, text='Test Image', style= 'SubTitle.TLabel')
         testimageLabel.grid(row=0, column=0, sticky='WE')
 
+        self.test_panel = Label(conversionFrame)
+        self.updateImage(self.test_panel, defaultImg)
+        self.test_panel.grid(column=0,row=1, sticky='WE')
+
+        
+        
+
         closestResultLabel = Label(conversionFrame, text='Closest Result', style= 'SubTitle.TLabel')
         closestResultLabel.grid(row=0, column=1, sticky='WE')
+
+        self.result_panel = Label(conversionFrame, image=None)
+        self.updateImage(self.result_panel, defaultImg)
+        self.result_panel.grid(row=1, column=1, sticky='WE')
 
         executionLabel = Label(conversionFrame, text='Execution time:', style='SubTitle.TLabel')
         executionLabel.grid(row=2, column=0, sticky='WE')
 
-        e1 = Label(conversionFrame, image=None)
-        e1.grid(row=1,column=0,sticky='WE')
+        
 
         self.root = root
         self.style = s
 
-        self.eigensolver = EigenSolver(256)
+        self.eigensolver = EigenSolver(defaultImgDimension)
         self.folder_path = None
         self.target_path = None
+
+        self.result_image = None
+        self.test_image = None
     
 
     def run(self):
@@ -123,44 +144,58 @@ class GUIRunner():
 
 
      # Upload image
-    def upload_targetImage(self):
-        types = [('Jpg Files', '*.jpg'),
-        ('PNG Files','*.png'), ('Jpeg Files', '*.jpeg')]
-        filename = filedialog.askopenfilename(multiple=False, filetypes=types)
-        # testphoto = Image.open(filename)
-        # testphoto = testphoto.resize((400,400), Image.ANTIALIAS)
-        # testphoto = ImageTk.PhotoImage(testphoto)
-        # e1 = Label(conversionFrame, image=testphoto)
-        # e1.grid(row=1,column=0,sticky='WE')
-        if filename != '':
-            # self.targetFiles = [filename] # we forced AN image path as folder paths
-            file, file_path = readFile(filename)
-            self.eigensolver.solve(file, file_path)
-            self.target_path = file_path
-        
-        self.updateUI()
-
     def upload_trainfolder(self):
-        folderName = filedialog.askdirectory()
-        # testphoto = Image.open(filename)
-        # testphoto = testphoto.resize((400,400), Image.ANTIALIAS)
-        # testphoto = ImageTk.PhotoImage(testphoto)
-        # e1 = Label(conversionFrame, image=testphoto)
-        # e1.grid(row=1,column=0,sticky='WE')
+        folderName = filedialog.askdirectory(initialdir='./public')
+       
         if folderName != '':
             files, files_path = readFolder(folderName)
-            # print(self.folder_path, 'dsaf')
+            
             self.eigensolver.train(files=files, files_path=files_path)
             self.folder_path = folderName
         
         self.updateUI()
 
+    def upload_targetImage(self):
+        types = [('Jpg Files', '*.jpg'),
+        ('PNG Files','*.png'), ('Jpeg Files', '*.jpeg')]
+        filename = filedialog.askopenfilename(multiple=False, filetypes=types)
+        
+        if filename != '':
+            # self.targetFiles = [filename] # we forced AN image path as folder paths
+            file, file_path = readFile(filename)
+            self.eigensolver.solve(file, file_path)
+            self.target_path = file_path[0]
+            print(self.target_path)
+            self.test_image = ImageTk.PhotoImage(Image.open(self.target_path))
+        
+        self.updateUI()
+
     def solve_pca(self):
         self.eigensolver.showResult()
-        print(self.eigensolver.new_files_path)
+        # print(self.eigensolver.new_files_path)
+
+        self.result_image = ImageTk.PhotoImage(Image.open(self.eigensolver.image_path))
+
+        self.updateUI()
 
         # self.e1.configure(image=openImage(self.eigensolver.new_files_path[0]))
+    
+    def updateImage(self, obj, img):
+        obj.config(image = img)
+        obj.photo = img
+        
 
     def updateUI(self):
-        self.path_label.configure(text=self.folder_path)
-        self.target_label.configure(text=str(self.target_path))
+        if self.folder_path != None:
+            self.path_label.configure(text=self.folder_path)
+        
+        if self.target_path != None:
+            self.target_label.configure(text=str(self.target_path))
+
+        if self.result_image != None:
+            self.updateImage(self.result_panel, self.result_image)
+
+        if self.test_image != None:
+            self.updateImage(self.test_panel, self.test_image)
+
+
