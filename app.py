@@ -7,21 +7,7 @@ import os
 import src.utility as util
 from src.file import readFolder, readFile
 
-# will only be here in the development phase
-def debugShow(name, mat):
-    print('\t' + name)
-
-    # as int
-    # cv2.imshow(name, mat.astype(np.uint8))
-
-    # as np float64
-    mat = mat/mat.max()
-    cv2.imshow(name, mat)
-
-    # debug
-    print(mat)
-    print('mean = ' + str(np.sum(mat)/mat.shape[0]/mat.shape[1]) + '\n\n')
-    print('type: ' , type(mat.flatten()[0]))
+from src.EigenSolver import EigenSolver
 
 if __name__ == '__main__':
 
@@ -30,58 +16,18 @@ if __name__ == '__main__':
     new_files, new_files_path, newImgCount = readFolder('public/target')
 
     # desired image size
-    desiredSize = 256
+    size = 256
+
+    eigenSolver = EigenSolver(desiredSize=size)
+
+    eigenSolver.train(files=files)
+    eigenSolver.solve(new_files=new_files)
+
+    Omega = eigenSolver.distributedWeight
+    Omega_target = eigenSolver.targetDistributedWeight
+
     
-    # reformat files into usable images
-    images = np.array([util.resize(i, desiredSize).flatten() for i in files]) # (x, 256^2)
-    newImages = np.array([util.resize(i, desiredSize).flatten() for i in new_files])
-
-
-    # mean face
-    mean = np.mean([k for k in images], axis=0) # axis = 0 since we avg EVERY corresponding pixel
-
-    # differ images
-    imagesDiff = np.array([(images[i]-mean).astype(np.uint8) for i in range(imgCount)])
-    newImagesDiff = np.array([(newImages[i]-mean).astype(np.uint8) for i in range(newImgCount)])
-
-
-    # A
-    A = np.array([i for i in images]).transpose() # sesuai definisi A di file
-
-    # L = C'
-    L =  A.transpose() @ A
-
-    # compute eigenvalues and eigenvector of L
-    eigValL, eigVecL = np.linalg.eig(L)
-    # eigVecL = util.normalizeSQR(eigVecL)
-
-    # compute eigenvalues and eigenvector of C
-    eigVecC = A @ eigVecL #eigVegU
-    # eigVecC = util.normalizeNP(eigVecC)
-    eigVecC = util.normalizeSQR(eigVecC)
-    print('iegvecC',  eigVecC.shape)
-
-    # compute weights
-    W = np.array([[eigVecC.transpose()[i] @ imagesDiff[j] for i in range(imgCount)] for j in range(imgCount)])
-    print('2>>>>>>>>>>>>>>>>>.',  W.shape, W)
-
-
-    # omega
-    Omega = [W[i] @ eigVecC.transpose() for i in range(imgCount)] # somehow result nya kinda unsatisfying?
-    print(mean.shape, ' = ' ,(eigVecC).shape,  '+', (W[5]).shape , ' =' ,(eigVecC @ W[5].transpose()).shape, 'shapey')
-
-    for i in range(2, 6):
-        debugShow('recon5' + str(i), util.unflatten(mean + eigVecC @ W[i].transpose()))
-
-    # for i in range(len(eigVecC.transpose())):
-    #     debugShow(str(i), util.unflatten(eigVecC.transpose()[i]))
-    #     debugShow(str(i+1000), util.unflatten(Omega[i]))
-    debugShow('mean', util.unflatten(mean))
-
-    #new stuffs
-    W_target = np.array([[eigVecC.transpose()[i] @ newImagesDiff[j] for i in range(imgCount)] for j in range(newImgCount)])
-    Omega_target = [W_target[i] @ eigVecC.transpose() for i in range(newImgCount)]
-
+    
     for i in range(newImgCount):
         print('\n\nini ke - ' + str(i+1))
         j = 0
