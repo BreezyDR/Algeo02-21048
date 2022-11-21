@@ -4,7 +4,10 @@ import sympy as sp
 from typing import List
 from scipy.linalg import hessenberg
 from matrix import Matrix
+import multiprocessing
 import qr
+import os
+import datetime
 
 # @squareOnly()
 def getEigenValues(A:np.ndarray, iteration=50, mode='gs', h_opt=True) -> List[float]:
@@ -75,34 +78,62 @@ def rot_complex(val):
 
     return v_rr + 1.j * v_ri
 
+def z_process(A, e, z, records):
+    Av = np.array(A, dtype=complex)
+    m, n = np.shape(Av)
+    eigenV = np.eye(n, dtype=complex)
+
+    for j in range(m):
+        Av[j,j] -= e
+
+    for i in range(m-1):
+        alpha = Av[i,i]
+        if alpha not in [0, 1]:
+            for j in range(m):
+                Av[i,j] = Av[i,j] / alpha
+        if alpha == 0:
+            Av[[i, i+1]] = Av[[i+1, i]]
+
+        for k in range(m):
+            if i != k:
+                theta = Av[k,i]
+                for j in range(i,m):
+                    Av[k,j] = Av[k,j] - Av[i,j] * theta
+    eigenV[:,z] = Av[:,m-1]
+    eigenV[m-1][z] = 1.0
+    nV = np.linalg.norm(eigenV[:,z])
+    eigenV[:,z] = np.array([v / nV for v in eigenV[:,z]], dtype=complex)
+    eigenV[:,z] = [rot_complex(v) for v in eigenV[:,z]] if e.imag != 0 else eigenV[:,z]
+    records.append((z, eigenV[:,z]))
 
 def getEigenVectors(A: np.ndarray, eigenValues:List[float]) -> np.ndarray:
     """Menghasilkan basis ruang eigen dalam bentuk matrix dan sudah terurut menurut eigen value-nya."""
+    multiprocessing.set_start_method('spawn')
     m, n = np.shape(A)
-    V = np.identity(n, dtype=complex)
+    processes = []
+    eigenV = np.identity(n, dtype=complex)
+    now = datetime.datetime.now()
+    process_count = os.cpu_count()
 
-    for (e,z) in zip(eigenValues, range(m)):
-        Av = np.array(A, dtype=complex)
+    with multiprocessing.Manager() as manager:
 
-        for j in range(m):
-            Av[j,j] -= e
+        records = manager.list()
 
-        for i in range(m-1):
-            alpha = Av[i,i]
-            if alpha not in [0, 1]:
-               for j in range(m):
-                   Av[i,j] = Av[i,j] / alpha
-            if alpha == 0:
-                Av[[i, i+1]] = Av[[i+1, i]]
+        for (e,z) in zip(eigenValues, range(m)):
+            process = multiprocessing.Process(target = z_process, args=(A, e, z, records))
+            processes.append(process)
+            process.start()
+            z = z + 1
+            if(len(processes) == process_count):
+                process = processes.pop(0)
+                process.join()
+                # print(processes)
 
-            for k in range(m):
-                if i != k:
-                    theta = Av[k,i]
-                    for j in range(i,m):
-                        Av[k,j] = Av[k,j] - Av[i,j] * theta
-        V[:,z] = Av[:,m-1]; V[m-1][z] = 1.0
-        nV = np.linalg.norm(V[:,z])
-        V[:,z] = np.array([v / nV for v in V[:,z]], dtype=complex)
-        V[:,z] = [rot_complex(v) for v in V[:,z]] if e.imag != 0 else V[:,z]
-        z = z + 1
-    return V
+        for process in processes:
+            process.join()
+
+        for record in records:
+            z, x = record
+            eigenV[:, z] = x
+        
+        return eigenValues, eigenV
