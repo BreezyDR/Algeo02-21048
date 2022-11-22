@@ -3,7 +3,8 @@ from numpy.typing import ArrayLike
 
 import numpy as np
 import sympy as sp
-
+from tabulate import tabulate
+from scipy.linalg import hessenberg
 import cv2
 
 
@@ -182,55 +183,48 @@ class Matrix:
         return self.buffer.shape
     
     
-
-
-    # static methods
-    def getEigenValues(self, real = True) -> List[int]:
-        """ 
-        deprecated, too slow
-        =======
-
-        Menghasilkan list berupa eigen values yang sudah terurut secara descending.
-        Akar-akar imajiner akan diabaikan."""
-        if not self.isSquare():
-            raise Exception("Matrix must be a square matrix")
+    @staticmethod
+    def qr_decomposititon_gs(mat: List[List[int]]) -> tuple[List[List[int]], List[List[int]]]:
+        """Dekomposisi QR dengan algoritma Gram-Schmidt Orthogonalization
+        Too slow, still. O(2mn²).
         
-        A = sp.Matrix(self.buffer)
-        lamda = sp.Symbol("lamda", real=True)
-        larr = sp.eye(len(self.buffer))*lamda
-        B = larr-A
+        Must try Schwarz-Rutishauser Algorithm O(mn²)"""
+        mat = np.array(mat)
+        length = len(mat)
 
-        eigenValues = sp.solve(B.det(),lamda)
-        if real:
-            eigenValues = list(map(float,eigenValues))
-        eigenValues = np.flip(np.sort(eigenValues)).tolist()
+        e = np.empty((length,length))
+        a = mat.T
+        for i in range(length):
+            u = np.copy(a[i])
+            for j in range(i):
+                u = u - (a[i] @ e[j]) * e[j]
+            e[i] = u/np.linalg.norm(u)
 
-        return eigenValues
+        R = np.zeros((length,length))
+        for i in range(length):
+            for j in range(i, length):
+                R[i][j] = a[j]@e[i]
+        Q = e.T
 
+        return (Q,R)
 
-    def getEigenVectors(self, real = True) -> List[List[int]]:
-        """Menghasilkan basis ruang eigen dalam bentuk matrix dan sudah terurut menurut eigen value-nya."""
-        eigenValues = self.getEigenValues()
-        eigenVectors = []
+    
+    @staticmethod
+    def qr_gs_modsr(A):
+        A = np.array(A)
+        (m,n) = np.shape(A)
 
-        A = sp.Matrix(self.buffer)
-        lamda = sp.Symbol("lamda", real=True)
-        larr = sp.eye(len(self.buffer))*lamda
-        B = larr-A
+        Q = np.array(A)      
+        R = np.zeros((n, n))
 
-        temprow = []
-        zeroMat = sp.zeros(B.rank(),1)
-        for e in eigenValues:
-            temp = B.copy().subs(lamda,e)
-            sol, params = temp.gauss_jordan_solve(zeroMat)
-            for param in params:
-                taus = {tau:0 for tau in params}
-                taus.update({param: 1})
-                temprow = [tau[0] for tau in sol.xreplace(taus).tolist()]
-                eigenVectors.append(temprow)
+        for k in range(n):
+            for i in range(k):
+                R[i,k] = Q[:,i].T@(Q[:,k])
+                Q[:,k] = Q[:,k] - R[i,k] * Q[:,i]
 
-        eigenVectors = sp.Matrix(eigenVectors).T.tolist()
-        return eigenVectors
+            R[k,k] = np.linalg.norm(Q[:,k]); Q[:,k] = Q[:,k] / R[k,k]
+        
+        return -Q, -R
 
 # static method
 def generateIdentityMatrix(dimension : int) -> List[List[int]] :
