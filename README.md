@@ -6,9 +6,9 @@ Tugas Besar 2 Aljabar Linear &amp; Geometri kelompok 15 (Reigenface)
 - Library tkinter, dlib, openCV, numpy, scikit-learn, PIL, ctypes, os, json, sys, math
 
 # Cara menjalankan
-1. GUI Face recognition
+1. GUI Face recognition__
 Run app.py
-2. Webcam
+2. Webcam__
 Run webcam.py
 
 # Kontributor
