@@ -109,7 +109,8 @@ def z_process(A, e, z, records):
 
 def getEigenVectors(A: np.ndarray, eigenValues:List[float], ignore_complex:bool = True) -> np.ndarray:
     """Menghasilkan basis ruang eigen dalam bentuk matrix dan sudah terurut menurut eigen value-nya."""
-    multiprocessing.set_start_method('spawn')
+    if(multiprocessing.get_start_method(allow_none=True) == None):
+        multiprocessing.set_start_method('spawn')
     m, n = np.shape(A)
     processes = []
     eigenV = np.identity(n, dtype=complex)
