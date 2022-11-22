@@ -25,7 +25,7 @@ if __name__ == '__main__':
     eigenSolver.train(files=files, files_path=individual_files_path)
     eigenSolver.solve(new_files=new_files, new_files_path=individual_target_path)
     
-    # eigenSolver.showResult()
+    eigenSolver.showResult()
     
 
     # gui.run()

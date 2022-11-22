@@ -29,22 +29,22 @@ class EigenSolver():
         self.desiredSize = desiredSize
 
     def train(self, files : str, files_path : str) -> None :
-        imgCount = 4
+        imgCount = len(files)
         desiredSize = self.getDesiredSize()
 
         # reformat files into usable images
-        # images = np.array([util.resize(i, desiredSize).flatten() for i in files]) # (x, 256^2)
+        images = np.array([util.resize(i, desiredSize).flatten() for i in files]) # (x, 256^2)
 
-        data = np.array([[[1, 1], [-2, -3]], [[1, -1], [3, 2]], [[2, -2], [1, 3]], [[1, 2], [2, 1]]])
-        images = np.array([i.transpose().flatten() for i in data])
-        print(images)
+        # data = np.array([[[1, 1], [-2, -3]], [[1, -1], [3, 2]], [[2, -2], [1, 3]], [[1, 2], [2, 1]]])
+        # images = np.array([i.transpose().flatten() for i in data])
+        # print(images)
 
         mean = np.mean([k for k in images], axis=0) # axis = 0 since we avg EVERY corresponding pixel
-        print(mean)
+        # print(mean)
 
         # differ images
         imagesDiff = np.array([(images[i]-mean) for i in range(imgCount)])
-        print(imagesDiff)
+        # print(imagesDiff)
 
                 # A
         A = np.array([i for i in imagesDiff]).transpose() # sesuai definisi A di file
@@ -52,31 +52,42 @@ class EigenSolver():
 
         # L = C'
         L =  A.transpose() @ A
-        dum = (A @ A.transpose())/4
+        # dum = (A @ A.transpose())/4
         # print(dum)
         # print(dum/4)
         # compute eigenvalues and eigenvector of L
-        eigValL, eigVecL = np.linalg.eig(dum)
+        eigValL, eigVecL = np.linalg.eig(L)
         # tempL = getEigenValues(L)
         # eigValL, eigVecL = getEigenVectors(L, tempL)
-        print(eigValL, eigVecL)
-        print(util.normalizeSQR(eigVecL), 'norm')
+        # print(eigValL, eigVecL)
+        # print(util.normalizeSQR(eigVecL), 'norm')
         
 
         # compute eigenvalues and eigenvector of C
         eigVecC = A @ eigVecL #eigVegU
-        print(eigVecC)
+        # print(eigVecC)
         
         eigVecC = util.normalizeSQR(eigVecC)
 
 
         # compute weights
-        W = np.array([[eigVecC.transpose()[i] @ imagesDiff[j] for i in range(imgCount)] for j in range(imgCount)])
-
+        # W = np.array([[eigVecC.transpose()[i] @ imagesDiff[j] for i in range(imgCount)] for j in range(imgCount)])
+        W = np.array([[np.array(eigVecC.transpose()[i]) @ np.array(imagesDiff[j].transpose()) for i in range(imgCount)] for j in range(imgCount)]) # ((eachW)eachGambar)
+        # print('shap', np.array(W).shape, np.array(eigVecC.transpose()[0]).shape, np.array(imagesDiff[0].transpose()).shape)
 
 
         # omega
-        Omega = [W[i] @ eigVecC.transpose() for i in range(imgCount)] # somehow result nya kinda unsatisfying?
+        # Omega = [W[i] @ eigVecC.transpose() for i in range(imgCount)] # somehow result nya kinda unsatisfying?
+        Omega = np.array([i for i in W])
+
+        # print('here',np.array(mean + eigVecC @ Omega[1].transpose()).shape)
+        # debugShow('me', util.unflatten(mean))
+        # for i in range(imgCount):
+        #     debugShow('fave' + str(i), util.unflatten(mean + eigVecC @ Omega[i].transpose()))
+        
+
+        # cv2.waitKey()
+
         
 
         # setting up values
@@ -112,12 +123,17 @@ class EigenSolver():
         
 
         
-        newImagesDiff = np.array([(newImages[i]-mean).astype(np.uint8) for i in range(newImgCount)])
+        newImagesDiff = np.array([(newImages[i]-mean) for i in range(newImgCount)])
 
 
         # kalkulasi pada targets
-        W_target = np.array([[eigVecC.transpose()[i] @ newImagesDiff[j] for i in range(imgCount)] for j in range(newImgCount)])
-        Omega_target = [W_target[i] @ eigVecC.transpose() for i in range(newImgCount)]
+        W_target = np.array([[np.array(eigVecC.transpose()[i]) @ np.array(newImagesDiff[j].transpose()) for i in range(imgCount)] for j in range(newImgCount)]) # ((eachW)eachGambar)
+        # print('shap', np.array(W).shape, np.array(eigVecC.transpose()[0]).shape, np.array(imagesDiff[0].transpose()).shape)
+
+
+        # omega
+        # Omega = [W[i] @ eigVecC.transpose() for i in range(imgCount)] # somehow result nya kinda unsatisfying?
+        Omega_target = np.array([i for i in W_target])
 
 
         # setting up values
@@ -127,14 +143,13 @@ class EigenSolver():
         self.hasSolved = True
         self.new_files_path = new_files_path
 
-    def getEuclidDistance(self, arr1, arr2):
-        res = arr1 - arr2
+    def getEuclidDistance(self, om1, om2): #member of omega
         sum = 0
+        for i in range(len(om1)):
+            sum += (om1[i] - om2[i])**2
 
-        for i in res:
-            sum += i**2
-        
-        return sum**.5
+        return sum
+
 
 
     def showResult(self):
@@ -147,23 +162,25 @@ class EigenSolver():
             j = 0
             minIdx = 0
 
-            min = np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j])
-            # min = self.getEuclidDistance(self.targetDistributedWeight[i], self.distributedWeight[j])
+            # min = np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j])
+            min = self.getEuclidDistance(self.targetDistributedWeight[i], self.distributedWeight[j])
             result = []
             while j < self.trainImgCount:
                 
-                # if self.getEuclidDistance(self.targetDistributedWeight[i], self.distributedWeight[j]) < min:
-                if np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j]) < min:
-                    min = np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j])
+                if self.getEuclidDistance(self.targetDistributedWeight[i], self.distributedWeight[j]) < min:
+                # if np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j]) < min:
+                    # min = np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j])
+                    min = self.getEuclidDistance(self.targetDistributedWeight[i], self.distributedWeight[j])
                     minIdx = j
-                result.append(np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j]))
+                # result.append(np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j]))
+                result.append(self.getEuclidDistance(self.targetDistributedWeight[i], self.distributedWeight[j]))
                 j += 1
                 
             
             print('Top 3 Result:')
-            res = np.array(self.files_path)[np.argsort(result)][:3]
+            res = np.array(self.files_path)[np.argsort(result)][:self.targetImgCount]
             for k in range(len(res)):
-                print(res[k], ' \t with value: ', np.array(result)[np.argsort(result)][:3][k])
+                print(res[k], ' \t with value: ', np.array(result)[np.argsort(result)][:self.targetImgCount][k])
             
             print(self.files_path[minIdx], '<- path file training dengan kemiripan terbesar')
             print(self.new_files_path[i], '<- path file target pengenalan wajah')
