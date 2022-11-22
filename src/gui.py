@@ -172,13 +172,12 @@ class GUIRunner():
 
     def solve_pca(self):
         self.eigensolver.showResult()
-        # print(self.eigensolver.new_files_path)
 
         self.result_image = ImageTk.PhotoImage(Image.open(self.eigensolver.image_path))
 
         self.updateUI()
 
-        # self.e1.configure(image=openImage(self.eigensolver.new_files_path[0]))
+        
     
     def updateImage(self, obj, img):
         obj.config(image = img)

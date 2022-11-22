@@ -3,9 +3,9 @@ import numpy as np
 import sympy as sp
 from typing import List
 from scipy.linalg import hessenberg
-from matrix import Matrix
+
 import multiprocessing
-import qr
+import src.qr as qr
 import os
 import datetime
 

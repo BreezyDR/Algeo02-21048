@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 import src.utility as util
 
+from src.eigen import getEigenVectors, getEigenValues
+
 # will only be here in the development phase
 def debugShow(name, mat):
     print('\t' + name)
@@ -27,8 +29,6 @@ class EigenSolver():
         self.desiredSize = desiredSize
 
     def train(self, files : str, files_path : str) -> None :
-        # files = np.array([np.array(i) for i in files])
-
         imgCount = len(files)
         desiredSize = self.getDesiredSize()
 
@@ -48,22 +48,24 @@ class EigenSolver():
 
         # compute eigenvalues and eigenvector of L
         eigValL, eigVecL = np.linalg.eig(L)
-        # eigVecL = util.normalizeSQR(eigVecL)
+        # tempL = getEigenValues(L)
+        # eigValL, eigVecL = getEigenVectors(L, tempL)
+        
 
         # compute eigenvalues and eigenvector of C
         eigVecC = A @ eigVecL #eigVegU
-        # eigVecC = util.normalizeNP(eigVecC)
+        
         eigVecC = util.normalizeSQR(eigVecC)
-        # print('iegvecC',  eigVecC.shape)
+
 
         # compute weights
         W = np.array([[eigVecC.transpose()[i] @ imagesDiff[j] for i in range(imgCount)] for j in range(imgCount)])
-        # print('2>>>>>>>>>>>>>>>>>.',  W.shape, W)
+
 
 
         # omega
         Omega = [W[i] @ eigVecC.transpose() for i in range(imgCount)] # somehow result nya kinda unsatisfying?
-        # print(mean.shape, ' = ' ,(eigVecC).shape,  '+', (W[5]).shape , ' =' ,(eigVecC @ W[5].transpose()).shape, 'shapey')
+        
 
         # setting up values
         self.trainImgCount = imgCount
@@ -101,15 +103,7 @@ class EigenSolver():
         newImagesDiff = np.array([(newImages[i]-mean).astype(np.uint8) for i in range(newImgCount)])
 
 
-        # for i in range(2, 6):
-        #     debugShow('recon5' + str(i), util.unflatten(mean + eigVecC @ W[i].transpose()))
-
-        # for i in range(len(eigVecC.transpose())):
-        #     debugShow(str(i), util.unflatten(eigVecC.transpose()[i]))
-        #     debugShow(str(i+1000), util.unflatten(Omega[i]))
-        # debugShow('mean', util.unflatten(mean))
-
-        #new stuffs
+        # kalkulasi pada targets
         W_target = np.array([[eigVecC.transpose()[i] @ newImagesDiff[j] for i in range(imgCount)] for j in range(newImgCount)])
         Omega_target = [W_target[i] @ eigVecC.transpose() for i in range(newImgCount)]
 
@@ -120,6 +114,15 @@ class EigenSolver():
 
         self.hasSolved = True
         self.new_files_path = new_files_path
+
+    def getEuclidDistance(self, arr1, arr2):
+        res = arr1 - arr2
+        sum = 0
+
+        for i in res:
+            sum += i**2
+        
+        return sum**.5
 
 
     def showResult(self):
@@ -133,9 +136,11 @@ class EigenSolver():
             minIdx = 0
 
             min = np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j])
+            # min = self.getEuclidDistance(self.targetDistributedWeight[i], self.distributedWeight[j])
             result = []
             while j < self.trainImgCount:
-                # print(self.distributedWeight)
+                
+                # if self.getEuclidDistance(self.targetDistributedWeight[i], self.distributedWeight[j]) < min:
                 if np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j]) < min:
                     min = np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j])
                     minIdx = j
@@ -148,19 +153,12 @@ class EigenSolver():
             for k in range(len(res)):
                 print(res[k], ' \t with value: ', np.array(result)[np.argsort(result)][:3][k])
             
-            # print(np.mean(mean), np.mean(Omega[i]))
-
-            # print(minIdx, 'min idx in mint')
             print(self.files_path[minIdx], '<- path file training dengan kemiripan terbesar')
             print(self.new_files_path[i], '<- path file target pengenalan wajah')
 
             self.image_path = self.files_path[minIdx]
 
         cv2.waitKey()
-
-
-
-
 
 
 
