@@ -7,7 +7,8 @@ Tugas Besar 2 Aljabar Linear &amp; Geometri kelompok 15 (Reigenface)
 Tip: Untuk meng-install dlib, install dengan cara berikut: <br />
 ```
 pip install dlib==19.22
-``` <br />
+```
+<br />
 Jika masih error: https://www.youtube.com/watch?v=tl2eEBFEHqM <br />
 
 
