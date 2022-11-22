@@ -4,7 +4,7 @@ Tugas Besar 2 Aljabar Linear &amp; Geometri kelompok 15 (Reigenface)
 # Requirements
 - Python 3.10.8
 - Disarankan menggunakan VSCode
-- Library tkinter, dlib, openCV, numpy, scikit-learn, PIL, ctypes, os, json, sys, face_recognition, math <br />
+- Library tkinter, dlib, openCV, numpy, scikit-learn, PIL, ctypes, os, sympy, json, sys, face_recognition, math <br />
 Tip: Untuk meng-install dlib, install dengan cara berikut: <br />
 ```
 pip install dlib==19.22
