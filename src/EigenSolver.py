@@ -26,6 +26,11 @@ class EigenSolver():
 
         self.desiredSize = desiredSize
 
+        self.train_time = 0
+        self.solve_time = 0
+
+        self.other_results = []
+
     def train(self, files : np.ndarray, files_path : str) -> None :
         print('training started ...')
         startTime = time.time()
@@ -78,9 +83,12 @@ class EigenSolver():
         self.files_path = files_path
         self.image_path = None
 
+
         print('training done')
         deltaTime = time.time() - startTime
         print('this process takes', deltaTime, 'seconds')
+
+        self.train_time = f'{deltaTime:.2f}'
 
     
     def solve(self, new_files : np.ndarray, new_files_path : str) -> None:
@@ -123,6 +131,8 @@ class EigenSolver():
         deltaTime = time.time() - startTime
         print('this process takes', deltaTime, 'seconds')
 
+        self.solve_time = f'{deltaTime:.2f}'
+
     def showResult(self):
         if not self.hasTrained or not self.hasSolved:
             print('please train images and solve for the solution before trying to show result')
@@ -161,6 +171,15 @@ class EigenSolver():
             #         print(i)
 
             self.image_path = self.files_path[minIdx]
+
+
+            result_for_ui = np.array(self.files_path)[np.argsort(result)][:10]
+            self.other_results = []
+            for i in result_for_ui:
+                n = i.split('/')[-1].split('\\')[-1].split('_')[0]
+                if n not in self.other_results :
+                    self.other_results.append(n)
+
 
         cv2.waitKey()
 
