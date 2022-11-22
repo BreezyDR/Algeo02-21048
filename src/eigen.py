@@ -10,7 +10,7 @@ import os
 import datetime
 
 # @squareOnly()
-def getEigenValues(A:np.ndarray, iteration=50, mode='gs', h_opt=True) -> List[float]:
+def getEigenValues(A:np.ndarray, iteration=50, mode='gs', h_opt=False, ignore_complex:bool = True) -> List[float]:
     """ 
     deprecated, too slow
     =======
@@ -63,11 +63,11 @@ def getEigenValues(A:np.ndarray, iteration=50, mode='gs', h_opt=True) -> List[fl
     Ak = np.diag(Ak)                         
     es = [Ak[i] if i in np.argwhere(es == 0)[:,0] 
             else es[i] for i in range(n)]
-    # for i in range(len(es)-1,-1,-1):
-    #     if np.iscomplex(es[i]):
-    #         print('complex')
-    #         es[i] = np.conj(es[i])
-    #         break
+
+    if ignore_complex:
+        for i in range(len(es)-1,-1,-1):
+            if np.iscomplex(es[i]):
+                es[i] = np.real(es[i])
 
     return es
 
@@ -106,7 +106,7 @@ def z_process(A, e, z, records):
     eigenV[:,z] = [rot_complex(v) for v in eigenV[:,z]] if e.imag != 0 else eigenV[:,z]
     records.append((z, eigenV[:,z]))
 
-def getEigenVectors(A: np.ndarray, eigenValues:List[float]) -> np.ndarray:
+def getEigenVectors(A: np.ndarray, eigenValues:List[float], ignore_complex:bool = True) -> np.ndarray:
     """Menghasilkan basis ruang eigen dalam bentuk matrix dan sudah terurut menurut eigen value-nya."""
     multiprocessing.set_start_method('spawn')
     m, n = np.shape(A)
@@ -136,4 +136,7 @@ def getEigenVectors(A: np.ndarray, eigenValues:List[float]) -> np.ndarray:
             z, x = record
             eigenV[:, z] = x
         
+        if(ignore_complex):
+            eigenV = eigenV.real.astype(float)
+
         return eigenValues, eigenV
