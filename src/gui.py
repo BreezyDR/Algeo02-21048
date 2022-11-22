@@ -86,8 +86,8 @@ class GUIRunner():
         save_db_button.grid(row=6, column=0, sticky='WE')
 
         uploadphotoFrame.grid_rowconfigure(7, weight=1)
-        save_db_button = Button(uploadphotoFrame, text = 'Load Calculations', style='Upload.TButton', width=10,  command = lambda:self.load_db())
-        save_db_button.grid(row=7, column=0, sticky='WE')
+        load_db_button = Button(uploadphotoFrame, text = 'Load Calculations', style='Upload.TButton', width=10,  command = lambda:self.load_db())
+        load_db_button.grid(row=7, column=0, sticky='WE')
     
         self.path_label = Label(uploadphotoFrame, text = 'Belum memasukkan folder', style='Upload.TLabel', width=20)
         self.path_label.grid(row=1, column=1, sticky='WE')
@@ -220,7 +220,7 @@ class GUIRunner():
 
     def save_db(self):
         types = [('Json Files', '*.json')]
-        filename = filedialog.asksaveasfilename(filetypes=types, initialdir='./public/data', initialfile='data_' + getUniqueId() + '.json')
+        filename = filedialog.asksaveasfilename(filetypes=types, initialdir='./public/data', initialfile='data_' + getUniqueId() + '.json', defaultextension='.json')
         
         if filename != '' and self.eigensolver.hasTrained:
             writeArrayAsData(filename, self.eigensolver.trainImgCount, self.eigensolver.mean, self.eigensolver.eigVec, self.eigensolver.distributedWeight, self.eigensolver.files_path)

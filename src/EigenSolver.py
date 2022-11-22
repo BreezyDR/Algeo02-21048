@@ -33,6 +33,9 @@ class EigenSolver():
         imgCount = len(files)
         desiredSize = self.getDesiredSize()
 
+        # make image files squared and centered
+        # files = np.array([util.makeImageSquare(i) for i in files])
+
         # reformat files into usable images
         images = np.array([util.resize(i, desiredSize).flatten() for i in files]) # (x, 256^2)
 
@@ -50,7 +53,7 @@ class EigenSolver():
         L =  A.transpose() @ A
         
         # compute eigenvalues and eigenvector of L
-        eigValL, eigVecL = np.linalg.eig(L)
+        eigValL, eigVecL = getEigenVectors(L, getEigenValues(L))
         
 
         # compute eigenvalues and eigenvector of C
@@ -88,7 +91,7 @@ class EigenSolver():
         print('solving started ...')
         startTime = time.time()
 
-        new_files = np.array(new_files)
+        # new_files = np.array([util.makeImageSquare(i) for i in new_files]) # to make sure it is a square image
 
         desiredSize = self.getDesiredSize()
         mean = self.mean
@@ -97,7 +100,6 @@ class EigenSolver():
         
         newImgCount = len(new_files)
 
-        
         newImages = np.array([util.resize(i, desiredSize).flatten() for i in new_files])
         newImagesDiff = np.array([(newImages[i]-mean) for i in range(newImgCount)])
 

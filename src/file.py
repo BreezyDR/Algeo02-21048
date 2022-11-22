@@ -19,7 +19,8 @@ def readFile(exact_path: str) -> np.ndarray:
 
 def readWebCam(frame: np.ndarray) :
     unique_id = getUniqueId()
-    new_path = "./public/webcam/webcam_" + unique_id + '.jpg'
+    new_path = "/public/webcam/webcam_" + unique_id + '.jpg'
+    new_path =  os.path.join(os.getcwd(), new_path)
     cv2.imwrite(new_path, frame)
 
     return [frame], [new_path]

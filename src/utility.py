@@ -27,9 +27,29 @@ def unflatten(arr : np.ndarray) -> np.ndarray:
 def normalizeSQR(arr) -> np.ndarray:
     return normalize(arr) # pls make sure it is a flatten mat
 
-def getEuclidDistance(om1, om2): # om is a member list of omega
+def getEuclidDistance(om1, om2 = []): # om is a member list of omega
     sum = 0
     for i in range(len(om1)):
-        sum += (om1[i] - om2[i])**2
+        if om2 != []:
+            sum += (om1[i] - om2[i])**2
+        else:
+            sum += om1[i]**2
 
     return sum
+
+
+
+def makeImageSquare(img: np.ndarray): # img should never be a flatten array
+    if len(img.shape) > 2 :
+        h, w, _ = img.shape
+    else:
+        h, w = img.shape
+
+    if w > h:
+        start_w = (w - h) // 2
+        start_h = 0
+    else:
+        start_w = 0
+        start_h = (h - 2) // 2
+
+    return  cv2.resize(img[start_h:start_h+w, start_w:start_w+h], (min(w, h), min(w, h)))
