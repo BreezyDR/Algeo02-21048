@@ -182,9 +182,9 @@ class EigenSolver():
                 
             
             print('Top 3 Result:')
-            res = np.array(self.files_path)[np.argsort(result)][:self.targetImgCount]
+            res = np.array(self.files_path)[np.argsort(result)][:3]
             for k in range(len(res)):
-                print(res[k], ' \t with value: ', np.array(result)[np.argsort(result)][:self.targetImgCount][k])
+                print(res[k], ' \t with value: ', np.array(result)[np.argsort(result)][:3][k])
             
             print(self.files_path[minIdx], '<- path file training dengan kemiripan terbesar')
             print(self.new_files_path[i], '<- path file target pengenalan wajah')
