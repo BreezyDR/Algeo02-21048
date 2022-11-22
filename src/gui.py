@@ -11,24 +11,26 @@ import ctypes
 from src.EigenSolver import EigenSolver
 from src.file import readFolder, readFile
 
+import time
+
 def openImage(path):
     return PhotoImage(Image.open(path))
  
 class GUIRunner():
     def __init__(self) -> None:
-        root = Tk()
-        root.title("Face Recognition - Reigenface")
-        root.geometry("1600x800")
+        self.root = Tk()
+        self.root.title("Face Recognition - Reigenface")
+        self.root.geometry("1600x800")
 
         ctypes.windll.shcore.SetProcessDpiAwareness(1) 
         # it alters dpi
         # https://coderslegacy.com/python/problem-solving/improve-tkinter-resolution/
 
         # variables
-        defaultImgDimension = 256
+        self.defaultImgDimension = 256
 
         bgcolor = '#e1e2e1'
-        defaultImg = ImageTk.PhotoImage(Image.open('./public/default/default.jpg').resize((defaultImgDimension, defaultImgDimension), Image.ANTIALIAS))
+        defaultImg = ImageTk.PhotoImage(Image.open('./public/default/default.jpg').resize((self.defaultImgDimension, self.defaultImgDimension), Image.ANTIALIAS))
         
 
 
@@ -45,9 +47,9 @@ class GUIRunner():
 
 
         # Frames
-        root.grid_rowconfigure(0, weight=1)
+        self.root.grid_rowconfigure(0, weight=1)
 
-        mainframe = Frame(root, width=1600, height=800, style='Mainframe.TFrame')
+        mainframe = Frame(self.root, width=1600, height=800, style='Mainframe.TFrame')
         mainframe.grid_rowconfigure(0, weight=1)
         mainframe.grid_rowconfigure(1, weight=7)
         mainframe.columnconfigure(0, weight= 2)
@@ -124,21 +126,37 @@ class GUIRunner():
         executionLabel = Label(conversionFrame, text='Execution time:', style='SubTitle.TLabel')
         executionLabel.grid(row=2, column=0, sticky='WE')
 
+
+        self.web_cam_panel = Label(conversionFrame, image=None)
+        self.updateImage(self.web_cam_panel, defaultImg)
+        self.web_cam_panel.grid(row=2, column=1, sticky='we')
+
+        self.webcam_text = ['Start Webcam Capture', 'Stop Webcam Capture']
+        self.startWebCam = Button(conversionFrame, text=self.webcam_text[False], style='Upload.TButton', command = lambda:self.toggle_webcam())
+        self.startWebCam.grid(row=2, column=2, sticky='WE')
+
         
 
-        self.root = root
+        self.root = self.root
         self.style = s
 
-        self.eigensolver = EigenSolver(defaultImgDimension)
+        self.eigensolver = EigenSolver(self.defaultImgDimension)
         self.folder_path = None
         self.target_path = None
 
         self.result_image = None
         self.test_image = None
-    
+
+        self.webcam_active = False
+        self.frame_capture_result = None
 
     def run(self):
         # Execution
+        startTime = time.time()
+        self.cap = cv2.VideoCapture(0)
+
+        print('program started in', time.time() - startTime, 'seconds')
+        
         self.root.mainloop()
 
 
@@ -158,7 +176,7 @@ class GUIRunner():
     def upload_targetImage(self):
         types = [('Jpg Files', '*.jpg'),
         ('PNG Files','*.png'), ('Jpeg Files', '*.jpeg')]
-        filename = filedialog.askopenfilename(multiple=False, filetypes=types)
+        filename = filedialog.askopenfilename(multiple=False, filetypes=types, initialdir='./public')
         
         if filename != '':
             # self.targetFiles = [filename] # we forced AN image path as folder paths
@@ -166,14 +184,15 @@ class GUIRunner():
             self.eigensolver.solve(file, file_path)
             self.target_path = file_path[0]
             print(self.target_path)
-            self.test_image = ImageTk.PhotoImage(Image.open(self.target_path))
+            self.test_image = ImageTk.PhotoImage(Image.open(self.target_path).resize((self.defaultImgDimension, self.defaultImgDimension), Image.ANTIALIAS))
         
         self.updateUI()
 
     def solve_pca(self):
         self.eigensolver.showResult()
-
-        self.result_image = ImageTk.PhotoImage(Image.open(self.eigensolver.image_path))
+        # print(self.eigensolver.new_files_path)
+        
+        self.result_image = ImageTk.PhotoImage(Image.open(self.eigensolver.image_path).resize((self.defaultImgDimension, self.defaultImgDimension), Image.ANTIALIAS))
 
         self.updateUI()
 
@@ -197,4 +216,48 @@ class GUIRunner():
         if self.test_image != None:
             self.updateImage(self.test_panel, self.test_image)
 
+    def toggle_webcam(self):
+        # still need to figure out how to realtime process loop        
+        self.webcam_active = not self.webcam_active
+        
+        self.startWebCam.config(text=self.webcam_text[self.webcam_active])
 
+        if self.webcam_active:
+            self.get_webcam_data()
+            
+
+    def get_webcam_data(self):
+        # cap = cv2.VideoCapture(0)
+        if not self.cap.isOpened:
+            print('--(!)Error opening video capture')
+            exit(0)
+
+        
+        ret, frame = self.cap.read()
+        if frame is None:
+            print('--(!) No captured frame -- Break!')
+            return
+
+        self.frame_capture_result = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        # if self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT) != self.defaultImgDimension: # this was weird
+        #     # self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.defaultImgDimension)
+        #     self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.defaultImgDimension)
+
+
+        if self.webcam_active:
+            # print(self.frame_capture_result)
+            # print('webcam statuss', self.webcam_active)
+            self.updateImage(self.web_cam_panel, ImageTk.PhotoImage(image=Image.fromarray(self.crop_webcam(self.frame_capture_result))))
+            self.root.after(1, self.get_webcam_data) # 0 will only make the program halted
+        else:
+            self.updateImage(self.test_panel, ImageTk.PhotoImage(image=Image.fromarray(self.crop_webcam(self.frame_capture_result))))
+
+    # sementara
+    def crop_webcam(self, array):
+        h, w, _ = array.shape
+        print(array.shape, 'sa')
+        
+        start_w = (w - h) // 2
+        # print(array[:, start_w:start_w+h].shape)
+        return  cv2.resize(array[:, start_w:start_w+h], (self.defaultImgDimension, self.defaultImgDimension))

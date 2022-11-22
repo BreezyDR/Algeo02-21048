@@ -3,6 +3,7 @@ import numpy as np
 import src.utility as util
 
 from src.eigen import getEigenVectors, getEigenValues
+import time # we may use timeit instead
 
 # will only be here in the development phase
 def debugShow(name, mat):
@@ -29,6 +30,10 @@ class EigenSolver():
         self.desiredSize = desiredSize
 
     def train(self, files : str, files_path : str) -> None :
+        print('training started ...')
+        startTime = time.time()
+        # files = np.array([np.array(i) for i in files])
+
         imgCount = len(files)
         desiredSize = self.getDesiredSize()
 
@@ -100,11 +105,18 @@ class EigenSolver():
         self.files_path = files_path
         self.image_path = None
 
+        print('training done')
+        deltaTime = time.time() - startTime
+        print('this process takes', deltaTime, 'seconds')
+
     
     def solve(self, new_files : str, new_files_path : str) -> None:
         if not self.hasTrained:
             print("You haven't trained any image into the solver yet")
             return
+
+        print('solving started ...')
+        startTime = time.time()
 
         new_files = np.array(new_files)
 
@@ -143,13 +155,16 @@ class EigenSolver():
         self.hasSolved = True
         self.new_files_path = new_files_path
 
+        print('solving done')
+        deltaTime = time.time() - startTime
+        print('this process takes', deltaTime, 'seconds')
+
     def getEuclidDistance(self, om1, om2): #member of omega
         sum = 0
         for i in range(len(om1)):
             sum += (om1[i] - om2[i])**2
 
         return sum
-
 
 
     def showResult(self):
