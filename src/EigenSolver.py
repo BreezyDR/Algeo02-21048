@@ -29,7 +29,7 @@ class EigenSolver():
 
         self.desiredSize = desiredSize
 
-    def train(self, files : str, files_path : str) -> None :
+    def train(self, files : np.ndarray, files_path : str) -> None :
         print('training started ...')
         startTime = time.time()
         # files = np.array([np.array(i) for i in files])
@@ -110,7 +110,7 @@ class EigenSolver():
         print('this process takes', deltaTime, 'seconds')
 
     
-    def solve(self, new_files : str, new_files_path : str) -> None:
+    def solve(self, new_files : np.ndarray, new_files_path : str) -> None:
         if not self.hasTrained:
             print("You haven't trained any image into the solver yet")
             return

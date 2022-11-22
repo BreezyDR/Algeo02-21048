@@ -3,6 +3,7 @@ import numpy as np
 import os
 
 import json
+import datetime
 
 # read image from files
 def readFolder(path: str) -> tuple[np.ndarray, str, int]:
@@ -15,6 +16,15 @@ def readFile(exact_path: str) -> np.ndarray:
     file = np.array([cv2.imread(exact_path, cv2.IMREAD_GRAYSCALE)])
 
     return file, [exact_path]
+
+def readWebCam(frame: np.ndarray) :
+    time = datetime.datetime.now()
+    unique_id = str(time.year) + str(time.month) + str(time.day) + '_' + str(time.hour) + str(time.minute) + str(time.second)
+    new_path = "./public/webcam/webcam_" + unique_id + '.jpg'
+    cv2.imwrite(new_path, frame)
+
+    return [frame], [new_path]
+
 
 
 # dump calculated data into json

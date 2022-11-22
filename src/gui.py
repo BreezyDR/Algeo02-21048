@@ -9,7 +9,7 @@ import cv2
 import ctypes
 
 from src.EigenSolver import EigenSolver
-from src.file import readFolder, readFile
+from src.file import readFolder, readFile, readWebCam
 
 import time
 
@@ -251,13 +251,14 @@ class GUIRunner():
             self.updateImage(self.web_cam_panel, ImageTk.PhotoImage(image=Image.fromarray(self.crop_webcam(self.frame_capture_result))))
             self.root.after(1, self.get_webcam_data) # 0 will only make the program halted
         else:
-            self.updateImage(self.test_panel, ImageTk.PhotoImage(image=Image.fromarray(self.crop_webcam(self.frame_capture_result))))
+            # self.updateImage(self.test_panel, ImageTk.PhotoImage(image=Image.fromarray(self.crop_webcam(self.frame_capture_result))))
+            frame, path = readWebCam(cv2.cvtColor(self.crop_webcam(self.frame_capture_result), cv2.COLOR_RGB2GRAY))
+            self.eigensolver.solve(frame, path)
+
 
     # sementara
     def crop_webcam(self, array):
         h, w, _ = array.shape
-        print(array.shape, 'sa')
-        
         start_w = (w - h) // 2
-        # print(array[:, start_w:start_w+h].shape)
+        
         return  cv2.resize(array[:, start_w:start_w+h], (self.defaultImgDimension, self.defaultImgDimension))
