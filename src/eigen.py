@@ -6,6 +6,7 @@ from scipy.linalg import hessenberg
 
 import multiprocessing
 import src.qr as qr
+import src.utility as util
 import os
 import datetime
 
@@ -101,7 +102,7 @@ def z_process(A, e, z, records):
                     Av[k,j] = Av[k,j] - Av[i,j] * theta
     eigenV[:,z] = Av[:,m-1]
     eigenV[m-1][z] = 1.0
-    nV = np.linalg.norm(eigenV[:,z])
+    nV = util.getEuclidDistance(eigenV[:,z])
     eigenV[:,z] = np.array([v / nV for v in eigenV[:,z]], dtype=complex)
     eigenV[:,z] = [rot_complex(v) for v in eigenV[:,z]] if e.imag != 0 else eigenV[:,z]
     records.append((z, eigenV[:,z]))

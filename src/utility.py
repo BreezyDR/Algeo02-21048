@@ -22,28 +22,34 @@ def unflatten(arr : np.ndarray) -> np.ndarray:
     # return resize(arr, (int(arr.shape[0]**.5), int(arr.shape[0]**.5)))
     return arr.reshape(int(arr.shape[0]**.5), -1)
 
-def magiclyNormalize(arr : np.ndarray) -> np.ndarray:
-    print('from mag', arr.shape)
-    return normalize([arr.transpose()], axis=1, norm='l1').transpose() # pls make sure it is a flatten mat
-
-def magiclyDisplay(arr : np.ndarray, name : str = 'from utility.py') -> None:
-    # it is a magic since we cant find why 25500 is the right spot
-    cv2.imshow(name, arr*25500)
-
-
-# normalize by comparison
-def normalizeNP(arr : np.ndarray) -> np.ndarray:
-    sum = np.sum(arr)
-
-    mean = np.mean(arr)
-
-    arr = np.array([[np.float64(abs(arr[j][i]/sum*100/mean)) for i in range(arr.shape[1])] for j in range(arr.shape[0])])
-
-    return arr
 
 # normalize by definition ||X|| = 1
 def normalizeSQR(arr) -> np.ndarray:
     return normalize(arr) # pls make sure it is a flatten mat
 
-# z = np.array([[-3, -1, 0 , 1], [-1, 1, 0 , -3]])
-# print(normalize(z), normalizeSQR(z))
+def getEuclidDistance(om1, om2 = []): # om is a member list of omega
+    sum = 0
+    for i in range(len(om1)):
+        if om2 != []:
+            sum += (om1[i] - om2[i])**2
+        else:
+            sum += om1[i]**2
+
+    return sum
+
+
+
+def makeImageSquare(img: np.ndarray): # img should never be a flatten array
+    if len(img.shape) > 2 :
+        h, w, _ = img.shape
+    else:
+        h, w = img.shape
+
+    if w > h:
+        start_w = (w - h) // 2
+        start_h = 0
+    else:
+        start_w = 0
+        start_h = (h - 2) // 2
+
+    return  cv2.resize(img[start_h:start_h+w, start_w:start_w+h], (min(w, h), min(w, h)))

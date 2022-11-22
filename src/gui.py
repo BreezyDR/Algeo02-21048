@@ -9,7 +9,7 @@ import cv2
 import ctypes
 
 from src.EigenSolver import EigenSolver
-from src.file import readFolder, readFile, readWebCam
+from src.file import getUniqueId, readFolder, readFile, readWebCam, writeArrayAsData, readDataAsArray
 
 import time
 
@@ -80,6 +80,14 @@ class GUIRunner():
         uploadphotoFrame.grid_rowconfigure(1, weight=2)
         datatestButton = Button(uploadphotoFrame, text = 'Choose Folder', style='Upload.TButton', width=10,  command = lambda:self.upload_trainfolder())
         datatestButton.grid(row=1, column=0, sticky='WE')
+
+        uploadphotoFrame.grid_rowconfigure(6, weight=1)
+        save_db_button = Button(uploadphotoFrame, text = 'Save Calculations', style='Upload.TButton', width=10,  command = lambda:self.save_db())
+        save_db_button.grid(row=6, column=0, sticky='WE')
+
+        uploadphotoFrame.grid_rowconfigure(7, weight=1)
+        load_db_button = Button(uploadphotoFrame, text = 'Load Calculations', style='Upload.TButton', width=10,  command = lambda:self.load_db())
+        load_db_button.grid(row=7, column=0, sticky='WE')
     
         self.path_label = Label(uploadphotoFrame, text = 'Belum memasukkan folder', style='Upload.TLabel', width=20)
         self.path_label.grid(row=1, column=1, sticky='WE')
@@ -96,7 +104,7 @@ class GUIRunner():
         self.target_label.grid(row=3, column=1, sticky='WE')
 
         uploadphotoFrame.grid_rowconfigure(4, weight=2)
-        resultLabel = Button(uploadphotoFrame, text='Result', style='Upload.TButton', command = lambda:self.solve_pca())
+        resultLabel = Button(uploadphotoFrame, text='Get Result', style='Upload.TButton', command = lambda:self.solve_pca())
         resultLabel.grid(row=4, column=0, sticky='WE')
 
         uploadphotoFrame.grid_rowconfigure(5, weight=20)
@@ -136,6 +144,7 @@ class GUIRunner():
         self.startWebCam.grid(row=2, column=2, sticky='WE')
 
         
+        # object variables
 
         self.root = self.root
         self.style = s
@@ -179,7 +188,6 @@ class GUIRunner():
         filename = filedialog.askopenfilename(multiple=False, filetypes=types, initialdir='./public')
         
         if filename != '':
-            # self.targetFiles = [filename] # we forced AN image path as folder paths
             file, file_path = readFile(filename)
             self.eigensolver.solve(file, file_path)
             self.target_path = file_path[0]
@@ -188,9 +196,41 @@ class GUIRunner():
         
         self.updateUI()
 
+    def load_db(self):
+        types = [('Json Files', '*.json')]
+        filename = filedialog.askopenfilename(multiple=False, initialdir='./public/data', filetypes=types)
+        
+        if filename != '':
+            __img_cnt, __mean, __eigVec, __distributedWeight, __files_path = readDataAsArray(filename)
+
+            # load dalam data
+            self.eigensolver.trainImgCount = __img_cnt
+            self.eigensolver.mean = __mean
+            self.eigensolver.eigVec = __eigVec
+            self.eigensolver.distributedWeight = __distributedWeight
+            self.eigensolver.files_path = __files_path
+
+            self.eigensolver.hasTrained = True
+        
+
+        print('finished loading ...')
+        
+        self.updateUI()
+
+
+    def save_db(self):
+        types = [('Json Files', '*.json')]
+        filename = filedialog.asksaveasfilename(filetypes=types, initialdir='./public/data', initialfile='data_' + getUniqueId() + '.json', defaultextension='.json')
+        
+        if filename != '' and self.eigensolver.hasTrained:
+            writeArrayAsData(filename, self.eigensolver.trainImgCount, self.eigensolver.mean, self.eigensolver.eigVec, self.eigensolver.distributedWeight, self.eigensolver.files_path)
+
+        print('finished saving ...')
+        
+        self.updateUI()
+
     def solve_pca(self):
         self.eigensolver.showResult()
-        # print(self.eigensolver.new_files_path)
         
         self.result_image = ImageTk.PhotoImage(Image.open(self.eigensolver.image_path).resize((self.defaultImgDimension, self.defaultImgDimension), Image.ANTIALIAS))
 
@@ -217,8 +257,7 @@ class GUIRunner():
             self.updateImage(self.test_panel, self.test_image)
 
     def toggle_webcam(self):
-        # still need to figure out how to realtime process loop        
-        self.webcam_active = not self.webcam_active
+        self.webcam_active = not self.webcam_active # switch state
         
         self.startWebCam.config(text=self.webcam_text[self.webcam_active])
 
@@ -227,7 +266,6 @@ class GUIRunner():
             
 
     def get_webcam_data(self):
-        # cap = cv2.VideoCapture(0)
         if not self.cap.isOpened:
             print('--(!)Error opening video capture')
             exit(0)
@@ -240,23 +278,17 @@ class GUIRunner():
 
         self.frame_capture_result = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-        # if self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT) != self.defaultImgDimension: # this was weird
-        #     # self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.defaultImgDimension)
-        #     self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.defaultImgDimension)
 
 
         if self.webcam_active:
-            # print(self.frame_capture_result)
-            # print('webcam statuss', self.webcam_active)
             self.updateImage(self.web_cam_panel, ImageTk.PhotoImage(image=Image.fromarray(self.crop_webcam(self.frame_capture_result))))
             self.root.after(1, self.get_webcam_data) # 0 will only make the program halted
         else:
-            # self.updateImage(self.test_panel, ImageTk.PhotoImage(image=Image.fromarray(self.crop_webcam(self.frame_capture_result))))
             frame, path = readWebCam(cv2.cvtColor(self.crop_webcam(self.frame_capture_result), cv2.COLOR_RGB2GRAY))
             self.eigensolver.solve(frame, path)
 
 
-    # sementara
+    # crop webcam
     def crop_webcam(self, array):
         h, w, _ = array.shape
         start_w = (w - h) // 2
