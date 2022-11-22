@@ -29,31 +29,43 @@ class EigenSolver():
         self.desiredSize = desiredSize
 
     def train(self, files : str, files_path : str) -> None :
-        imgCount = len(files)
+        imgCount = 4
         desiredSize = self.getDesiredSize()
 
         # reformat files into usable images
-        images = np.array([util.resize(i, desiredSize).flatten() for i in files]) # (x, 256^2)
+        # images = np.array([util.resize(i, desiredSize).flatten() for i in files]) # (x, 256^2)
+
+        data = np.array([[[1, 1], [-2, -3]], [[1, -1], [3, 2]], [[2, -2], [1, 3]], [[1, 2], [2, 1]]])
+        images = np.array([i.transpose().flatten() for i in data])
+        print(images)
 
         mean = np.mean([k for k in images], axis=0) # axis = 0 since we avg EVERY corresponding pixel
+        print(mean)
 
         # differ images
-        imagesDiff = np.array([(images[i]-mean).astype(np.uint8) for i in range(imgCount)])
+        imagesDiff = np.array([(images[i]-mean) for i in range(imgCount)])
+        print(imagesDiff)
 
                 # A
-        A = np.array([i for i in images]).transpose() # sesuai definisi A di file
+        A = np.array([i for i in imagesDiff]).transpose() # sesuai definisi A di file
+        # print(A, 'a')
 
         # L = C'
         L =  A.transpose() @ A
-
+        dum = (A @ A.transpose())/4
+        # print(dum)
+        # print(dum/4)
         # compute eigenvalues and eigenvector of L
-        eigValL, eigVecL = np.linalg.eig(L)
+        eigValL, eigVecL = np.linalg.eig(dum)
         # tempL = getEigenValues(L)
         # eigValL, eigVecL = getEigenVectors(L, tempL)
+        print(eigValL, eigVecL)
+        print(util.normalizeSQR(eigVecL), 'norm')
         
 
         # compute eigenvalues and eigenvector of C
         eigVecC = A @ eigVecL #eigVegU
+        print(eigVecC)
         
         eigVecC = util.normalizeSQR(eigVecC)
 
