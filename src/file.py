@@ -18,8 +18,7 @@ def readFile(exact_path: str) -> np.ndarray:
     return file, [exact_path]
 
 def readWebCam(frame: np.ndarray) :
-    time = datetime.datetime.now()
-    unique_id = str(time.year) + str(time.month) + str(time.day) + '_' + str(time.hour) + str(time.minute) + str(time.second)
+    unique_id = getUniqueId()
     new_path = "./public/webcam/webcam_" + unique_id + '.jpg'
     cv2.imwrite(new_path, frame)
 
@@ -28,19 +27,30 @@ def readWebCam(frame: np.ndarray) :
 
 
 # dump calculated data into json
-saves_path = "src/json/" # should be static
-def readDataAsArray(exact_path: str) -> tuple[str, np.ndarray]:
-    data = json.loads(os.path.join(saves_path, exact_path))
+def readDataAsArray(absolute_path: str) -> tuple[int, np.array, np.array, np.array]:
+    with open(absolute_path, 'r') as file:
+        data = json.loads(file.read())
 
-    return data["name"], np.ndarray(data["data"])
+    return data["img_count"], np.array(data["mean_face"]), np.array(data["eigen_vectors"]), np.array(data["distributed_weight"]), np.array(data["files_path"])
 
  # need optimization, preferrably go make it into int instead of float
-def writeArrayAsData(exact_path: str, data: np.ndarray, name: str = 'written by writeArrayAsData') -> None:
+def writeArrayAsData(absolute_path: str, img_count : int, mean_face : np.ndarray, eigen_vectors: np.ndarray, distributed_weight: np.ndarray, files_path: np.ndarray) -> None:
     json_data = json.dumps({
-                    "name" : name,
-                    "data" : np.array(data).tolist()
+                    "img_count": img_count,
+                    "mean_face": np.array(mean_face).tolist(),
+                    "eigen_vectors" : np.array(eigen_vectors).tolist(),
+                    "distributed_weight": np.array(distributed_weight).tolist(),
+                    "files_path": np.array(files_path).tolist()
                 })
-
-    with open(exact_path, 'w') as file:
-        file.write(json_data)
     
+    with open(absolute_path, 'w') as file:
+        file.write(json_data)
+
+
+# helper to naming
+
+def getUniqueId() -> str:
+    time = datetime.datetime.now()
+    unique_id = str(time.year) + str(time.month) + str(time.day) + '_' + str(time.hour) + str(time.minute) + str(time.second)
+
+    return unique_id
