@@ -12,7 +12,7 @@ Run app.py
 Run webcam.py
 
 # Kontributor
-Muhammad Farrel Danendra Rachim - 13521048
-Fakih Anugerah Pratama - 13521091
-Reza Pahlevi Ubaidillah - 13521165
+- Muhammad Farrel Danendra Rachim / 13521048
+- Fakih Anugerah Pratama / 13521091
+- Reza Pahlevi Ubaidillah / 13521165
 
