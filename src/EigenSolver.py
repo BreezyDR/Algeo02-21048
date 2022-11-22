@@ -157,6 +157,10 @@ class EigenSolver():
             print('please train images and solve for the solution before trying to show result')
             return
 
+        # threshold_arr = [[self.getEuclidDistance(i, j) for i in self.distributedWeight] for j in self.distributedWeight]
+        # threshold = np.max(np.array(threshold_arr).flatten())/2
+
+
         for i in range(self.targetImgCount):
             print('\n\nHasil pencocokan ke-' + str(i+1))
             j = 0
@@ -184,6 +188,10 @@ class EigenSolver():
             
             print(self.files_path[minIdx], '<- path file training dengan kemiripan terbesar')
             print(self.new_files_path[i], '<- path file target pengenalan wajah')
+
+            # for i in result:
+            #     if i < threshold:
+            #         print(i)
 
             self.image_path = self.files_path[minIdx]
 
