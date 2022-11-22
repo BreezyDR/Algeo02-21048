@@ -11,7 +11,7 @@ if __name__ == '__main__':
     # initialize gui
     gui = GUIRunner()
 
-    # # read files streams
+    # read files streams
     # files_path = 'public/images/'
     # target_path = 'public/target'
     # files, individual_files_path = readFolder(files_path)

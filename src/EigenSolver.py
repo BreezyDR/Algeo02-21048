@@ -2,6 +2,9 @@ import cv2
 import numpy as np
 import src.utility as util
 
+from src.eigen import getEigenVectors, getEigenValues
+import time # we may use timeit instead
+
 # will only be here in the development phase
 def debugShow(name, mat):
     print('\t' + name)
@@ -26,7 +29,9 @@ class EigenSolver():
 
         self.desiredSize = desiredSize
 
-    def train(self, files : str, files_path : str) -> None :
+    def train(self, files : np.ndarray, files_path : str) -> None :
+        print('training started ...')
+        startTime = time.time()
         # files = np.array([np.array(i) for i in files])
 
         imgCount = len(files)
@@ -35,35 +40,60 @@ class EigenSolver():
         # reformat files into usable images
         images = np.array([util.resize(i, desiredSize).flatten() for i in files]) # (x, 256^2)
 
+        # data = np.array([[[1, 1], [-2, -3]], [[1, -1], [3, 2]], [[2, -2], [1, 3]], [[1, 2], [2, 1]]])
+        # images = np.array([i.transpose().flatten() for i in data])
+        # print(images)
+
         mean = np.mean([k for k in images], axis=0) # axis = 0 since we avg EVERY corresponding pixel
+        # print(mean)
 
         # differ images
-        imagesDiff = np.array([(images[i]-mean).astype(np.uint8) for i in range(imgCount)])
+        imagesDiff = np.array([(images[i]-mean) for i in range(imgCount)])
+        # print(imagesDiff)
 
                 # A
-        A = np.array([i for i in images]).transpose() # sesuai definisi A di file
+        A = np.array([i for i in imagesDiff]).transpose() # sesuai definisi A di file
+        # print(A, 'a')
 
         # L = C'
         L =  A.transpose() @ A
-
+        # dum = (A @ A.transpose())/4
+        # print(dum)
+        # print(dum/4)
         # compute eigenvalues and eigenvector of L
         eigValL, eigVecL = np.linalg.eig(L)
-        # eigVecL = util.normalizeSQR(eigVecL)
+        # tempL = getEigenValues(L)
+        # eigValL, eigVecL = getEigenVectors(L, tempL)
+        # print(eigValL, eigVecL)
+        # print(util.normalizeSQR(eigVecL), 'norm')
+        
 
         # compute eigenvalues and eigenvector of C
         eigVecC = A @ eigVecL #eigVegU
-        # eigVecC = util.normalizeNP(eigVecC)
+        # print(eigVecC)
+        
         eigVecC = util.normalizeSQR(eigVecC)
-        # print('iegvecC',  eigVecC.shape)
+
 
         # compute weights
-        W = np.array([[eigVecC.transpose()[i] @ imagesDiff[j] for i in range(imgCount)] for j in range(imgCount)])
-        # print('2>>>>>>>>>>>>>>>>>.',  W.shape, W)
+        # W = np.array([[eigVecC.transpose()[i] @ imagesDiff[j] for i in range(imgCount)] for j in range(imgCount)])
+        W = np.array([[np.array(eigVecC.transpose()[i]) @ np.array(imagesDiff[j].transpose()) for i in range(imgCount)] for j in range(imgCount)]) # ((eachW)eachGambar)
+        # print('shap', np.array(W).shape, np.array(eigVecC.transpose()[0]).shape, np.array(imagesDiff[0].transpose()).shape)
 
 
         # omega
-        Omega = [W[i] @ eigVecC.transpose() for i in range(imgCount)] # somehow result nya kinda unsatisfying?
-        # print(mean.shape, ' = ' ,(eigVecC).shape,  '+', (W[5]).shape , ' =' ,(eigVecC @ W[5].transpose()).shape, 'shapey')
+        # Omega = [W[i] @ eigVecC.transpose() for i in range(imgCount)] # somehow result nya kinda unsatisfying?
+        Omega = np.array([i for i in W])
+
+        # print('here',np.array(mean + eigVecC @ Omega[1].transpose()).shape)
+        # debugShow('me', util.unflatten(mean))
+        # for i in range(imgCount):
+        #     debugShow('fave' + str(i), util.unflatten(mean + eigVecC @ Omega[i].transpose()))
+        
+
+        # cv2.waitKey()
+
+        
 
         # setting up values
         self.trainImgCount = imgCount
@@ -75,11 +105,18 @@ class EigenSolver():
         self.files_path = files_path
         self.image_path = None
 
+        print('training done')
+        deltaTime = time.time() - startTime
+        print('this process takes', deltaTime, 'seconds')
+
     
-    def solve(self, new_files : str, new_files_path : str) -> None:
+    def solve(self, new_files : np.ndarray, new_files_path : str) -> None:
         if not self.hasTrained:
             print("You haven't trained any image into the solver yet")
             return
+
+        print('solving started ...')
+        startTime = time.time()
 
         new_files = np.array(new_files)
 
@@ -98,20 +135,17 @@ class EigenSolver():
         
 
         
-        newImagesDiff = np.array([(newImages[i]-mean).astype(np.uint8) for i in range(newImgCount)])
+        newImagesDiff = np.array([(newImages[i]-mean) for i in range(newImgCount)])
 
 
-        # for i in range(2, 6):
-        #     debugShow('recon5' + str(i), util.unflatten(mean + eigVecC @ W[i].transpose()))
+        # kalkulasi pada targets
+        W_target = np.array([[np.array(eigVecC.transpose()[i]) @ np.array(newImagesDiff[j].transpose()) for i in range(imgCount)] for j in range(newImgCount)]) # ((eachW)eachGambar)
+        # print('shap', np.array(W).shape, np.array(eigVecC.transpose()[0]).shape, np.array(imagesDiff[0].transpose()).shape)
 
-        # for i in range(len(eigVecC.transpose())):
-        #     debugShow(str(i), util.unflatten(eigVecC.transpose()[i]))
-        #     debugShow(str(i+1000), util.unflatten(Omega[i]))
-        # debugShow('mean', util.unflatten(mean))
 
-        #new stuffs
-        W_target = np.array([[eigVecC.transpose()[i] @ newImagesDiff[j] for i in range(imgCount)] for j in range(newImgCount)])
-        Omega_target = [W_target[i] @ eigVecC.transpose() for i in range(newImgCount)]
+        # omega
+        # Omega = [W[i] @ eigVecC.transpose() for i in range(imgCount)] # somehow result nya kinda unsatisfying?
+        Omega_target = np.array([i for i in W_target])
 
 
         # setting up values
@@ -121,25 +155,44 @@ class EigenSolver():
         self.hasSolved = True
         self.new_files_path = new_files_path
 
+        print('solving done')
+        deltaTime = time.time() - startTime
+        print('this process takes', deltaTime, 'seconds')
+
+    def getEuclidDistance(self, om1, om2): #member of omega
+        sum = 0
+        for i in range(len(om1)):
+            sum += (om1[i] - om2[i])**2
+
+        return sum
+
 
     def showResult(self):
         if not self.hasTrained or not self.hasSolved:
             print('please train images and solve for the solution before trying to show result')
             return
 
+        # threshold_arr = [[self.getEuclidDistance(i, j) for i in self.distributedWeight] for j in self.distributedWeight]
+        # threshold = np.max(np.array(threshold_arr).flatten())/2
+
+
         for i in range(self.targetImgCount):
             print('\n\nHasil pencocokan ke-' + str(i+1))
             j = 0
             minIdx = 0
 
-            min = np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j])
+            # min = np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j])
+            min = self.getEuclidDistance(self.targetDistributedWeight[i], self.distributedWeight[j])
             result = []
             while j < self.trainImgCount:
-                # print(self.distributedWeight)
-                if np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j]) < min:
-                    min = np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j])
+                
+                if self.getEuclidDistance(self.targetDistributedWeight[i], self.distributedWeight[j]) < min:
+                # if np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j]) < min:
+                    # min = np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j])
+                    min = self.getEuclidDistance(self.targetDistributedWeight[i], self.distributedWeight[j])
                     minIdx = j
-                result.append(np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j]))
+                # result.append(np.linalg.norm(self.targetDistributedWeight[i] - self.distributedWeight[j]))
+                result.append(self.getEuclidDistance(self.targetDistributedWeight[i], self.distributedWeight[j]))
                 j += 1
                 
             
@@ -148,19 +201,16 @@ class EigenSolver():
             for k in range(len(res)):
                 print(res[k], ' \t with value: ', np.array(result)[np.argsort(result)][:3][k])
             
-            # print(np.mean(mean), np.mean(Omega[i]))
-
-            # print(minIdx, 'min idx in mint')
             print(self.files_path[minIdx], '<- path file training dengan kemiripan terbesar')
             print(self.new_files_path[i], '<- path file target pengenalan wajah')
+
+            # for i in result:
+            #     if i < threshold:
+            #         print(i)
 
             self.image_path = self.files_path[minIdx]
 
         cv2.waitKey()
-
-
-
-
 
 
 
