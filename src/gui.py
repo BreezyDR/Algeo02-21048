@@ -50,8 +50,12 @@ class GUIRunner():
         self.root.grid_rowconfigure(0, weight=1)
 
         mainframe = Frame(self.root, width=1600, height=800, style='Mainframe.TFrame')
+
         mainframe.grid_rowconfigure(0, weight=1)
         mainframe.grid_rowconfigure(1, weight=7)
+        mainframe.grid_columnconfigure(0, weight=3)
+        mainframe.grid_columnconfigure(1, weight=5)
+
         mainframe.columnconfigure(0, weight= 2)
         mainframe.columnconfigure(1, weight=1)
         
@@ -131,13 +135,19 @@ class GUIRunner():
         self.updateImage(self.result_panel, defaultImg)
         self.result_panel.grid(row=1, column=1, sticky='WE')
 
-        executionLabel = Label(conversionFrame, text='Execution time:', style='SubTitle.TLabel')
-        executionLabel.grid(row=2, column=0, sticky='WE')
+        self.traininglabel = Label(conversionFrame, text='Training time     : 0', style='SubTitle.TLabel')
+        self.traininglabel.grid(row=2, column=0, sticky='WE')
+
+        self.executionLabel = Label(conversionFrame, text='Execution time    : 0', style='SubTitle.TLabel')
+        self.executionLabel.grid(row=3, column=0, sticky='WE')
+
+        self.other_result_Label = Label(conversionFrame, text='', style='SubTitle.TLabel')
+        self.other_result_Label.grid(row=2, column=1, sticky='WE')
 
 
-        self.web_cam_panel = Label(conversionFrame, image=None)
-        self.updateImage(self.web_cam_panel, defaultImg)
-        self.web_cam_panel.grid(row=2, column=1, sticky='we')
+        # self.web_cam_panel = Label(conversionFrame, image=None)
+        # self.updateImage(self.web_cam_panel, defaultImg)
+        # self.web_cam_panel.grid(row=2, column=1, sticky='we')
 
         self.webcam_text = ['Start Webcam Capture', 'Stop Webcam Capture']
         self.startWebCam = Button(conversionFrame, text=self.webcam_text[False], style='Upload.TButton', command = lambda:self.toggle_webcam())
@@ -179,6 +189,8 @@ class GUIRunner():
             
             self.eigensolver.train(files=files, files_path=files_path)
             self.folder_path = folderName
+
+            self.traininglabel.config(text="Training time   : " + self.eigensolver.train_time + 'seconds')
         
         self.updateUI()
 
@@ -193,6 +205,8 @@ class GUIRunner():
             self.target_path = file_path[0]
             print(self.target_path)
             self.test_image = ImageTk.PhotoImage(Image.open(self.target_path).resize((self.defaultImgDimension, self.defaultImgDimension), Image.ANTIALIAS))
+
+            self.executionLabel.config(text='Execution time     : ' + self.eigensolver.solve_time)
         
         self.updateUI()
 
@@ -234,6 +248,8 @@ class GUIRunner():
         
         self.result_image = ImageTk.PhotoImage(Image.open(self.eigensolver.image_path).resize((self.defaultImgDimension, self.defaultImgDimension), Image.ANTIALIAS))
 
+        self.other_result_Label.config(text='May also be:\n' + '\n'.join(self.eigensolver.other_results))
+
         self.updateUI()
 
         
@@ -250,10 +266,10 @@ class GUIRunner():
         if self.target_path != None:
             self.target_label.configure(text=str(self.target_path))
 
-        if self.result_image != None:
+        if self.result_image is not None:
             self.updateImage(self.result_panel, self.result_image)
 
-        if self.test_image != None:
+        if self.test_image is not None:
             self.updateImage(self.test_panel, self.test_image)
 
     def toggle_webcam(self):
@@ -281,11 +297,16 @@ class GUIRunner():
 
 
         if self.webcam_active:
-            self.updateImage(self.web_cam_panel, ImageTk.PhotoImage(image=Image.fromarray(self.crop_webcam(self.frame_capture_result))))
+            self.updateImage(self.test_panel, ImageTk.PhotoImage(image=Image.fromarray(self.crop_webcam(self.frame_capture_result))))
             self.root.after(1, self.get_webcam_data) # 0 will only make the program halted
         else:
             frame, path = readWebCam(cv2.cvtColor(self.crop_webcam(self.frame_capture_result), cv2.COLOR_RGB2GRAY))
             self.eigensolver.solve(frame, path)
+
+            self.executionLabel.config(text='Execution time     : ' + self.eigensolver.solve_time + 'seconds')
+
+            self.test_image = self.frame_capture_result
+            
 
 
     # crop webcam
